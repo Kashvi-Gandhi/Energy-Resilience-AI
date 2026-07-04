@@ -22,6 +22,16 @@ API_HEADERS = {
     "Content-Type": "application/json"
 }
 
+# 🛠️ FIX: Initialize the official Supabase Client for main.py to import
+# This satisfies: "from app.database import supabase"
+try:
+    from supabase import create_client, Client
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+except ImportError:
+    # Fallback placeholder if the supabase library isn't inside your pip env yet
+    supabase = None
+
+
 def get_gemini_embedding(text: str):
     """Generates a 768-dimension vector embedding using Gemini."""
     try:
@@ -34,6 +44,7 @@ def get_gemini_embedding(text: str):
     except Exception as e:
         print(f"❌ Gemini Embedding Generation Error: {e}")
         return None
+
 
 def query_vector_news(query_text: str, match_threshold: float = 0.4, match_count: int = 2):
     """

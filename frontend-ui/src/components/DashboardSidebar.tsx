@@ -21,17 +21,18 @@ interface SidebarProps {
 
 export default function DashboardSidebar({ currentRoute = "Overview" }: SidebarProps) {
   // Navigation categories mimicking an enterprise maritime operations command center
+  // Updated navigation routes pointing explicitly to your new directories
   const navItems = [
-    { name: "Overview", icon: LayoutDashboard },
-    { name: "Live Map", icon: Map },
-    { name: "Threats", icon: AlertTriangle },
-    { name: "Vessels", icon: Ship },
-    { name: "Routes", icon: GitFork },
-    { name: "Ports", icon: Anchor },
-    { name: "Risk Intelligence", icon: BrainCircuit },
-    { name: "Reports", icon: FileText },
-    { name: "Simulation", icon: Play },
-    { name: "Settings", icon: Settings },
+    { name: "Overview", icon: LayoutDashboard, href: "/" },
+    { name: "Live Map", icon: Map, href: "/live-map" },
+    { name: "Threats", icon: AlertTriangle, href: "/threats" },
+    { name: "Vessels", icon: Ship, href: "/vessels" },
+    { name: "Routes", icon: GitFork, href: "/routes" },
+    { name: "Ports", icon: Anchor, href: "/ports" },
+    { name: "Risk Intelligence", icon: BrainCircuit, href: "/risk-intelligence" },
+    { name: "Reports", icon: FileText, href: "/reports" },
+    { name: "Simulation", icon: Play, href: "/simulation" },
+    { name: "Settings", icon: Settings, href: "/settings" },
   ];
 
   return (
@@ -55,8 +56,9 @@ export default function DashboardSidebar({ currentRoute = "Overview" }: SidebarP
           const isActive = item.name === currentRoute;
           
           return (
-            <button
+            <a
               key={item.name}
+              href={item.href}
               className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-lg text-xs font-medium tracking-wide transition-all group relative ${
                 isActive 
                   ? "bg-blue-600 text-white font-bold shadow-md shadow-blue-900/20" 
@@ -66,11 +68,10 @@ export default function DashboardSidebar({ currentRoute = "Overview" }: SidebarP
               <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-slate-500 group-hover:text-slate-300"}`} />
               <span>{item.name}</span>
               
-              {/* Optional UI Active indicators */}
               {isActive && (
                 <div className="absolute right-2 h-1.5 w-1.5 bg-white rounded-full" />
               )}
-            </button>
+            </a>
           );
         })}
       </nav>

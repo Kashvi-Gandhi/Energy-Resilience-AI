@@ -5,8 +5,10 @@ from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 # Absolute/Relative imports depending on execution context
-# Make sure app/database.py and app/agents.py exist in your folder structure
 from app.database import query_vector_news 
+# 🛠️ HELPER ASSUMPTION: Importing your initialized supabase client from your database file
+# If you configure it elsewhere, adjust this import statement to match.
+from app.database import supabase 
 from app.agents import run_scout_agent, run_logistics_agent
 
 load_dotenv()
@@ -45,6 +47,70 @@ def read_root():
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy", "database_connected": True}
+
+
+# --- 🛠️ NEW SUPABASE DATA EXTRACTION ENDPOINTS ---
+
+@app.get("/api/vessels")
+def get_live_fleet():
+    """
+    Fetches real-time fleet positions from Supabase, joining 
+    associated route risks and terminal names relational profiles.
+    """
+    try:
+        # Executes table joins across your primary keys
+        response = supabase.table("vessels").select(
+            "id, name, current_lat, current_lon, cargo_type, capacity_barrels, status, updated_at, "
+            "supply_routes(route_name, risk_score), refineries(refinery_name)"
+        ).execute()
+        return response.data
+    except Exception as e:
+        print(f"❌ Supabase vessels read failure: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database operational failure: {str(e)}")
+
+
+@app.get("/api/threats")
+def get_active_threat_briefs():
+    """
+    Fetches hot intelligence feeds tied to corridors straight from the database matrix.
+    """
+    try:
+        response = supabase.table("geopolitical_news").select(
+            "id, title, content, source, created_at, supply_routes(route_name, risk_score)"
+        ).order("created_at", desc=True).execute()
+        return response.data
+    except Exception as e:
+        print(f"❌ Supabase news read failure: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database operational failure: {str(e)}")
+    
+
+@app.get("/api/routes")
+def get_supply_corridors():
+    """
+    Fetches strategic marine transit corridors directly out of Supabase
+    """
+    try:
+        response = supabase.table("supply_routes").select("id, route_name, risk_score, waypoints").execute()
+        return response.data
+    except Exception as e:
+        print(f"❌ Supabase supply_routes fetch failure: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database route error: {str(e)}")
+
+
+@app.get("/api/ports")
+def get_refineries_and_ports():
+    """
+    Fetches destination refinery networks and transshipment port capacities
+    """
+    try:
+        response = supabase.table("refineries").select("id, refinery_name, location, capacity_mpda, crude_compatibility").execute()
+        return response.data
+    except Exception as e:
+        print(f"❌ Supabase refineries fetch failure: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database refinery node error: {str(e)}")
+
+# --- ------------------------------------------ ---
+
 
 # Core Day 9 API Endpoint converted to POST to handle complex text data safely
 @app.post("/api/simulate-crisis")
