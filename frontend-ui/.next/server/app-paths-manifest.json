@@ -1,3 +1,8 @@
 {
-  "/page": "app/page.js"
+  "/ports/page": "app/ports/page.js",
+  "/threats/page": "app/threats/page.js",
+  "/vessels/page": "app/vessels/page.js",
+  "/live-map/page": "app/live-map/page.js",
+  "/page": "app/page.js",
+  "/routes/page": "app/routes/page.js"
 }

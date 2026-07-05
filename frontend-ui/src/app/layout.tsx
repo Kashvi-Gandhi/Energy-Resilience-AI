@@ -1,10 +1,24 @@
 import type { Metadata } from "next";
-import React from "react"; // Added to clear type errors explicitly
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
+// 1. Initialize the Sans-Serif interface font
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans", // Binds to a CSS variable
+  display: "swap",
+});
+
+// 2. Initialize the Tactical Monospace font
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono", // Binds to a CSS variable
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Energy Resilience AI Core",
-  description: "National Sovereign Energy Security & Risk Simulation Dashboard",
+  title: "Maritime Geopolitical Risk Dashboard",
+  description: "AI-Powered Threat Intelligence Engine",
 };
 
 export default function RootLayout({
@@ -13,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-slate-950 text-slate-50 antialiased min-h-screen font-sans">
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className="bg-[#F8FAFC] antialiased">
         {children}
       </body>
     </html>
