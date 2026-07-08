@@ -97,9 +97,12 @@
 }
 
 /* Flowing vector path arrows stream animation */
+/* The .vector-animated-path class targets the SVG <path> element Leaflet generates
+   for Polyline components. stroke-dasharray is controlled via pathOptions in
+   InteractiveMap.tsx; animation drives the dashoffset forward to simulate flow
+   moving down the shipping lane (positive offset = movement in draw direction). */
 .vector-animated-path {
-  stroke-dasharray: 10, 12;
-  animation: routeFlow 30s linear infinite;
+  animation: routeFlow 20s linear infinite;
 }
 
 @keyframes radarPulse {
@@ -108,9 +111,12 @@
   100% { transform: scale(0.85); opacity: 0.7; }
 }
 
+/* Animates stroke-dashoffset from 0 → positive value to move dashes
+   forward along the path direction (Suez → Hormuz → Singapore corridor).
+   Larger offset number = more visible movement per second.              */
 @keyframes routeFlow {
-  from { stroke-dashoffset: 500; }
-  to { stroke-dashoffset: 0; }
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 500; }
 }
 
 /* Label styling directly on map layout matching the image */

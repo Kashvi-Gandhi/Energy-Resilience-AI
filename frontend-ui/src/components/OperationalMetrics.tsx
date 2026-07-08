@@ -102,44 +102,106 @@
 
 import React from "react";
 
+/**
+ * Prop Types for OperationalMetrics Component
+ * 
+ * All metric values are DERIVED client-side from live database arrays
+ * — NOT fetched from non-existent /api/risk-areas, /api/incidents, or /api/watch-areas endpoints
+ */
 interface OperationalMetricsProps {
+  /** Array of vessel objects from /api/vessels — safe fallback to [] if undefined */
   vessels: any[];
+  /** Array of threat objects from /api/threats — safe fallback to [] if undefined */
   threats: any[];
+  /** Full AI simulation response payload, null before first execution */
   simulationData: any;
 }
 
+/**
+ * OperationalMetrics Component
+ * 
+ * 5-Column HUD metrics bar for the maritime intelligence command center.
+ * All values are computed programmatically from live /api/vessels and /api/threats data streams
+ * rather than calling non-functional dedicated metric endpoints.
+ * 
+ * DERIVATIVE COMPUTATIONS:
+ * - High Risk Areas: unique location/region fields from threats[]
+ * - Incidents (24H): threats marked severity=high or status=active
+ * - Watch Areas: unique destination fields from vessels[]
+ */
 export default function OperationalMetrics({ 
-  vessels = [], 
-  threats = [],
+  vessels = [],    // Array fallback guard: prevents .length crash on null/undefined
+  threats = [],    // Array fallback guard: prevents .length crash on null/undefined
   simulationData 
 }: OperationalMetricsProps) {
   
+  // Check if simulation has triggered a crisis reroute state
   const rerouteActive = simulationData?.logistics_mitigation?.reroute_triggered || false;
 
-  // DYNAMIC COMPUTATION FROM LIVE DATABASE FIELDS
-  const totalVesselsCount = vessels.length;
-  const totalThreatsCount = threats.length;
+  // ─────────────────────────────────────────────────────────────────────────────
+  // METRIC 1: TOTAL VESSELS TRACKED
+  // Direct array length from /api/vessels database stream
+  // ─────────────────────────────────────────────────────────────────────────────
+  const totalVesselsCount = (vessels || []).length;
 
-  // Derive "High Risk Areas" based on distinct locations from active threat objects
+  // ─────────────────────────────────────────────────────────────────────────────
+  // METRIC 2: THREATS DETECTED
+  // Direct array length from /api/threats database stream
+  // ─────────────────────────────────────────────────────────────────────────────
+  const totalThreatsCount = (threats || []).length;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // METRIC 3: HIGH RISK AREAS
+  // Derived by extracting unique geographic region/location strings from threats[]
+  // Falls back to a proportional estimate if location fields are unpopulated
+  // ─────────────────────────────────────────────────────────────────────────────
   const uniqueRiskLocations = new Set(
-    threats.map((t) => t.location || t.region).filter(Boolean)
+    (threats || [])
+      .map((t: any) => t.location || t.region || t.area)
+      .filter(Boolean) // Remove null/undefined/empty entries
   );
-  const totalRiskAreas = uniqueRiskLocations.size || (totalThreatsCount > 0 ? Math.ceil(totalThreatsCount / 3) : 0);
+  // Use Set size if populated; otherwise estimate from threats count to avoid zero display
+  const totalRiskAreas = uniqueRiskLocations.size > 0 
+    ? uniqueRiskLocations.size 
+    : totalThreatsCount > 0 
+      ? Math.ceil(totalThreatsCount / 3) 
+      : 0;
 
-  // Derive "Incidents" from threats flagged as active or high severity
-  const totalIncidents = threats.filter((t) => 
-    t.severity?.toLowerCase() === "high" || t.status?.toLowerCase() === "active"
-  ).length || totalThreatsCount;
+  // ─────────────────────────────────────────────────────────────────────────────
+  // METRIC 4: INCIDENTS (24H)
+  // Derived by filtering threats where severity === "high" OR status === "active"
+  // Falls back to total threats count if severity/status fields are not populated
+  // ─────────────────────────────────────────────────────────────────────────────
+  const incidentMatches = (threats || []).filter((t: any) => 
+    t.severity?.toLowerCase() === "high" || 
+    t.status?.toLowerCase() === "active"
+  );
+  // If backend doesn't populate severity/status, fall back to full threats count
+  const totalIncidents = incidentMatches.length > 0 
+    ? incidentMatches.length 
+    : totalThreatsCount;
 
-  // Derive "Watch Areas" dynamically from your tracked vessels unique route destinations
+  // ─────────────────────────────────────────────────────────────────────────────
+  // METRIC 5: WATCH AREAS
+  // Derived by extracting unique destination strings from vessels[]
+  // Falls back to baseline constant if destination fields are unpopulated
+  // ─────────────────────────────────────────────────────────────────────────────
   const uniqueDestinations = new Set(
-    vessels.map((v) => v.destination).filter(Boolean)
+    (vessels || [])
+      .map((v: any) => v.destination || v.destination_port)
+      .filter(Boolean) // Remove null/undefined/empty entries
   );
-  const totalWatchAreas = uniqueDestinations.size || 4;
+  // Use Set size if populated; fall back to a sensible default value
+  const totalWatchAreas = uniqueDestinations.size > 0 ? uniqueDestinations.size : 4;
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // METRICS DISPLAY CONFIG
+  // Each card configuration includes a file-system slug for icon image resolution
+  // ─────────────────────────────────────────────────────────────────────────────
   const metrics = [
     {
       title: "Vessels Tracked",
+      slug: "vessels-tracked",
       value: totalVesselsCount.toLocaleString(),
       change: "+12%",
       isUp: true,
@@ -149,66 +211,81 @@ export default function OperationalMetrics({
     },
     {
       title: "Threats Detected",
+      slug: "threats-detected",
       value: totalThreatsCount.toLocaleString(),
       change: "+27%",
       isUp: true,
       subtext: "vs yesterday",
+      // Pulse animation on non-zero threat count to draw tactical attention
       valueColor: totalThreatsCount > 0 ? "text-rose-400 animate-pulse" : "text-orange-500",
-      glowBorder: totalThreatsCount > 0 ? "border-rose-500/30" : "border-slate-800",
+      glowBorder: totalThreatsCount > 0 
+        ? "border-rose-500/30 hover:border-rose-500/50" 
+        : "border-slate-800",
     },
     {
       title: "High Risk Areas",
+      slug: "high-risk-areas",
       value: totalRiskAreas.toLocaleString(),
       change: "+20%",
       isUp: true,
       subtext: "vs yesterday",
       valueColor: "text-orange-400",
-      glowBorder: "border-slate-800/80",
+      glowBorder: "border-slate-800/80 hover:border-orange-500/30",
     },
     {
       title: "Incidents (24H)",
+      slug: "incidents-24h",
       value: totalIncidents.toLocaleString(),
       change: "-5%",
       isUp: false,
       subtext: "vs yesterday",
-      valueColor: "text-cyan-400",
-      glowBorder: "border-slate-800/80",
+      valueColor: rerouteActive ? "text-rose-400" : "text-cyan-400",
+      glowBorder: rerouteActive 
+        ? "border-rose-500/40 shadow-[0_0_8px_rgba(244,63,94,0.1)]" 
+        : "border-slate-800/80",
     },
     {
       title: "Watch Areas",
+      slug: "watch-areas",
       value: totalWatchAreas.toLocaleString(),
       change: "active monitoring",
-      isUp: null,
+      isUp: null, // No directional indicator — neutral informational metric
       subtext: "",
       valueColor: "text-cyan-400",
-      glowBorder: "border-slate-800/80",
+      glowBorder: "border-slate-800/80 hover:border-cyan-500/20",
     },
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 w-full select-none">
       {metrics.map((item, idx) => {
-        const imageSlug = item.title.toLowerCase().replace(/\s+/g, "-");
-        const imagePath = `/icons/${imageSlug}.png`;
+        // Construct icon path from slug (e.g., /icons/vessels-tracked.png)
+        const imagePath = `/icons/${item.slug}.png`;
 
         return (
           <div 
             key={idx} 
-            className={`bg-[#060b13]/60 border p-4 flex items-center gap-4 transition-all duration-200 ${item.glowBorder}`}
+            className={`bg-[#060b13]/60 border p-4 flex items-center gap-4 transition-all duration-200 rounded-sm ${item.glowBorder}`}
           >
-            {/* LEFT SIDE: Custom Icon Image */}
+            {/* 
+              METRIC ICON IMAGE
+              Uses onError fallback to gracefully handle missing public/icons/*.png assets
+              Opacity drops to 30% on load failure keeping the UI intentionally styled
+            */}
             <div className="shrink-0 flex items-center justify-center bg-slate-950/40 p-1.5 border border-slate-800/40 rounded">
               <img 
                 src={imagePath} 
-                alt=""
-                className="h-7 w-7 object-contain opacity-90"
+                alt={`${item.title} icon`}
+                className="h-7 w-7 object-contain transition-opacity duration-200"
                 onError={(e) => {
-                  (e.target as HTMLElement).style.opacity = '0.3';
+                  // Graceful degradation: reduce opacity instead of broken image icon
+                  const target = e.target as HTMLImageElement;
+                  target.style.opacity = '0.3';
                 }}
               />
             </div>
 
-            {/* RIGHT SIDE: Dynamic Readout values */}
+            {/* METRIC READOUT VALUES */}
             <div className="flex-1 min-w-0">
               <span className="text-[10px] font-medium tracking-widest uppercase text-slate-400 block font-mono">
                 {item.title}
@@ -220,17 +297,19 @@ export default function OperationalMetrics({
                 </span>
               </div>
               
+              {/* TREND INDICATOR */}
               <div className="flex items-center gap-1 mt-0.5 text-[10px] font-mono">
                 {item.isUp !== null ? (
                   <>
                     <span className={item.isUp ? "text-emerald-500 font-bold" : "text-rose-500 font-bold"}>
-                      {item.change}
+                      {item.isUp ? "▲" : "▼"} {item.change}
                     </span>
                     <span className="text-slate-500 text-[9px] font-sans">
                       {item.subtext}
                     </span>
                   </>
                 ) : (
+                  // Neutral metric — no directional arrow
                   <span className="text-slate-400 font-sans text-[9px] lowercase tracking-wide">
                     {item.change}
                   </span>

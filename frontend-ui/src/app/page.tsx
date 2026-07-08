@@ -562,12 +562,17 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Loader2, Radio, Compass, LayoutDashboard } from "lucide-react";
+import { Loader2, Radio } from "lucide-react";
 import DashboardSidebar from "../components/DashboardSidebar";
 import OperationalMetrics from "../components/OperationalMetrics";
 import ThreatAlertFeed from "../components/ThreatAlertFeed";
 import InsightCard from "../components/InsightCard";
 
+/**
+ * Dynamic Import: InteractiveMap Component
+ * Disables SSR to prevent Leaflet hydration errors in Next.js
+ * Displays tactical loading spinner during map initialization
+ */
 const InteractiveMap = dynamic(() => import("../components/InteractiveMap"), {
   ssr: false,
   loading: () => (
@@ -578,42 +583,86 @@ const InteractiveMap = dynamic(() => import("../components/InteractiveMap"), {
   ),
 });
 
+/**
+ * GlobalDashboard Component
+ * 
+ * Main command center dashboard for maritime geopolitical risk monitoring
+ * Features:
+ * - Real-time vessel tracking from /api/vessels endpoint
+ * - Threat intelligence feed from /api/threats endpoint
+ * - Interactive map visualization with crisis rerouting simulation
+ * - Multi-agent AI crisis simulation orchestration
+ * 
+ * IMPORTANT: Only fetches from VALID backend endpoints to eliminate 404 errors:
+ * ✅ /api/vessels
+ * ✅ /api/threats
+ * ✅ /api/simulate-crisis (POST)
+ * 
+ * REMOVED (non-existent endpoints):
+ * ❌ /api/risk-areas
+ * ❌ /api/incidents
+ * ❌ /api/watch-areas
+ */
 export default function GlobalDashboard() {
+  // Simulation State Management
   const [loading, setLoading] = useState(false);
   const [simulationData, setSimulationData] = useState<any>(null);
   
-  // Real Database Streams from Valid Endpoints
+  // Core Database Streams (Valid Endpoints Only)
   const [vesselsData, setVesselsData] = useState<any[]>([]);
   const [threatsData, setThreatsData] = useState<any[]>([]);
 
+  /**
+   * Database Telemetry Synchronization Effect
+   * Fetches live operational data from backend FastAPI endpoints
+   * Implements robust error handling and array fallback guards
+   * Triggers on mount and when simulation state changes
+   */
   useEffect(() => {
     async function pullDatabaseTelemetry() {
-      // 1. Fetch live vessels
+      // STREAM 1: Fetch live vessels from validated endpoint
       try {
         const res = await fetch("http://127.0.0.1:8000/api/vessels");
         if (res.ok) {
           const payload = await res.json();
-          setVesselsData(Array.isArray(payload) ? payload : payload.data || []);
+          // Defensive array normalization: handles both direct arrays and nested data structures
+          setVesselsData(Array.isArray(payload) ? payload : (payload.data || []));
+        } else {
+          console.warn(`⚠️ Vessels endpoint returned status ${res.status}`);
+          setVesselsData([]);
         }
       } catch (err) {
-        console.error("Database sync failed for vessels:", err);
+        console.error("❌ Database sync failed for vessels:", err);
+        setVesselsData([]);
       }
 
-      // 2. Fetch live threats
+      // STREAM 2: Fetch live threats from validated endpoint
       try {
         const res = await fetch("http://127.0.0.1:8000/api/threats");
         if (res.ok) {
           const payload = await res.json();
-          setThreatsData(Array.isArray(payload) ? payload : payload.data || []);
+          // Defensive array normalization: handles both direct arrays and nested data structures
+          setThreatsData(Array.isArray(payload) ? payload : (payload.data || []));
+        } else {
+          console.warn(`⚠️ Threats endpoint returned status ${res.status}`);
+          setThreatsData([]);
         }
       } catch (err) {
-        console.error("Database sync failed for threats:", err);
+        console.error("❌ Database sync failed for threats:", err);
+        setThreatsData([]);
       }
     }
 
     pullDatabaseTelemetry();
   }, [simulationData]);
 
+  /**
+   * Simulation Orchestration Handler
+   * Triggers multi-agent AI crisis response simulation via backend
+   * Coordinates Scout Agent and Logistics Architect Agent workflows
+   * 
+   * @param scenario - User-provided geopolitical scenario text input
+   */
   const handleRunSimulation = async (scenario: string) => {
     setLoading(true);
     try {
@@ -623,26 +672,37 @@ export default function GlobalDashboard() {
         body: JSON.stringify({ scenario }),
       });
       
+      if (!response.ok) {
+        console.error(`❌ Simulation API returned status ${response.status}`);
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
       if (data.status === "success") {
         setSimulationData(data);
+      } else {
+        console.warn("⚠️ Simulation completed but returned non-success status:", data);
       }
     } catch (error) {
-      console.error("Simulation engine failure:", error);
+      console.error("❌ Simulation engine connection failure:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  // Derive reroute state from simulation logistics mitigation response
   const rerouteActive = simulationData?.logistics_mitigation?.reroute_triggered || false;
 
   return (
     <div className="flex h-screen w-screen bg-[#020617] overflow-hidden antialiased text-slate-100 font-sans">
+      {/* LEFT SIDEBAR: Navigation Panel */}
       <DashboardSidebar currentRoute="Overview" />
 
+      {/* MAIN CONTENT AREA: Scrollable Dashboard Workspace */}
       <div className="flex-1 h-full flex flex-col overflow-y-auto p-6 space-y-6 custom-scrollbar">
         
-        {/* HEADER */}
+        {/* HEADER: System Status Bar */}
         <div className="flex justify-between items-center border-b border-slate-800/60 pb-5 shrink-0">
           <div>
             <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-cyan-500 font-mono font-bold mb-1">
@@ -654,23 +714,33 @@ export default function GlobalDashboard() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className={`h-2 w-2 rounded-full ${rerouteActive ? "bg-rose-500 animate-ping" : "bg-emerald-500"}`} />
+            <span 
+              className={`h-2 w-2 rounded-full ${rerouteActive ? "bg-rose-500 animate-ping" : "bg-emerald-500"}`} 
+            />
             <div className="text-[10px] font-mono font-bold bg-slate-900/80 border border-slate-800 px-3 py-2 rounded text-slate-300 uppercase tracking-wider">
               MATRIX STATE: {rerouteActive ? "CRISIS_REROUTING_ACTIVE" : "NOMINAL_MONITORING"}
             </div>
           </div>
         </div>
 
-        {/* HUD LAYOUT */}
+        {/* OPERATIONAL METRICS GRID: 5-Column HUD Display */}
         <OperationalMetrics 
           vessels={vesselsData}
           threats={threatsData}
           simulationData={simulationData}
         />
 
-        {/* WORKSPACE MIDDLE GRIDS */}
+        {/* PRIMARY WORKSPACE: Map + Threat Feed Layout */}
         <div className="flex flex-col xl:flex-row gap-6 w-full items-start">
-          <div className={`w-full xl:w-2/3 bg-slate-900/30 border border-slate-800/80 backdrop-blur-md rounded-lg flex flex-col overflow-hidden h-[560px] shrink-0 transition-all duration-300 ${rerouteActive ? 'border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.15)]' : ''}`}>
+          
+          {/* LEFT PANEL: Interactive Geographic Map Canvas */}
+          <div 
+            className={`w-full xl:w-2/3 bg-slate-900/30 border border-slate-800/80 backdrop-blur-md rounded-lg flex flex-col overflow-hidden h-[560px] shrink-0 transition-all duration-300 ${
+              rerouteActive 
+                ? 'border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.15)]' 
+                : ''
+            }`}
+          >
             <div className="px-4 py-3 border-b border-slate-800/60 bg-slate-950">
               <span className="text-[11px] font-bold uppercase tracking-widest font-mono text-slate-400">
                 Live Vector Shipping Corridor Map Array
@@ -681,11 +751,16 @@ export default function GlobalDashboard() {
             </div>
           </div>
 
+          {/* RIGHT PANEL: Threat Intelligence Feed + Simulation Sandbox */}
           <div className="w-full xl:w-1/3 h-[560px] shrink-0 bg-slate-900/30 border border-slate-800/80 backdrop-blur-md rounded-lg overflow-hidden">
-            <ThreatAlertFeed onSimulate={handleRunSimulation} isLoading={loading} />
+            <ThreatAlertFeed 
+              onSimulate={handleRunSimulation} 
+              isLoading={loading} 
+            />
           </div>
         </div>
 
+        {/* CONDITIONAL RENDER: AI Agent Insights Card */}
         {simulationData && (
           <div className="w-full transition-all duration-300">
             <InsightCard 
