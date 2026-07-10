@@ -121,13 +121,6 @@
 //   );
 // }
 
-
-
-
-
-
-
-
 // "use client";
 
 // import React, { useState, useEffect } from "react";
@@ -548,16 +541,6 @@
 //   );
 // }
 
-
-
-
-
-
-
-
-
-
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -585,19 +568,19 @@ const InteractiveMap = dynamic(() => import("../components/InteractiveMap"), {
 
 /**
  * GlobalDashboard Component
- * 
+ *
  * Main command center dashboard for maritime geopolitical risk monitoring
  * Features:
  * - Real-time vessel tracking from /api/vessels endpoint
  * - Threat intelligence feed from /api/threats endpoint
  * - Interactive map visualization with crisis rerouting simulation
  * - Multi-agent AI crisis simulation orchestration
- * 
+ *
  * IMPORTANT: Only fetches from VALID backend endpoints to eliminate 404 errors:
  * ✅ /api/vessels
  * ✅ /api/threats
  * ✅ /api/simulate-crisis (POST)
- * 
+ *
  * REMOVED (non-existent endpoints):
  * ❌ /api/risk-areas
  * ❌ /api/incidents
@@ -607,7 +590,7 @@ export default function GlobalDashboard() {
   // Simulation State Management
   const [loading, setLoading] = useState(false);
   const [simulationData, setSimulationData] = useState<any>(null);
-  
+
   // Core Database Streams (Valid Endpoints Only)
   const [vesselsData, setVesselsData] = useState<any[]>([]);
   const [threatsData, setThreatsData] = useState<any[]>([]);
@@ -618,34 +601,69 @@ export default function GlobalDashboard() {
    * Implements robust error handling and array fallback guards
    * Triggers on mount and when simulation state changes
    */
+  // useEffect(() => {
+  //   async function pullDatabaseTelemetry() {
+  //     // STREAM 1: Fetch live vessels from validated endpoint
+  //     try {
+  //       const res = await fetch("http://127.0.0.1:8000/api/vessels");
+  //       if (res.ok) {
+  //         const payload = await res.json();
+  //         // Defensive array normalization: handles both direct arrays and nested data structures
+  //         setVesselsData(Array.isArray(payload) ? payload : (payload.data || []));
+  //       } else {
+  //         console.warn(`⚠️ Vessels endpoint returned status ${res.status}`);
+  //         setVesselsData([]);
+  //       }
+  //     } catch (err) {
+  //       console.error("❌ Database sync failed for vessels:", err);
+  //       setVesselsData([]);
+  //     }
+
+  //     // STREAM 2: Fetch live threats from validated endpoint
+  //     try {
+  //       const res = await fetch("http://127.0.0.1:8000/api/threats");
+  //       if (res.ok) {
+  //         const payload = await res.json();
+  //         // Defensive array normalization: handles both direct arrays and nested data structures
+  //         setThreatsData(Array.isArray(payload) ? payload : (payload.data || []));
+  //       } else {
+  //         console.warn(`⚠️ Threats endpoint returned status ${res.status}`);
+  //         setThreatsData([]);
+  //       }
+  //     } catch (err) {
+  //       console.error("❌ Database sync failed for threats:", err);
+  //       setThreatsData([]);
+  //     }
+  //   }
+
+  //   pullDatabaseTelemetry();
+  // }, [simulationData]);
+
   useEffect(() => {
     async function pullDatabaseTelemetry() {
-      // STREAM 1: Fetch live vessels from validated endpoint
       try {
         const res = await fetch("http://127.0.0.1:8000/api/vessels");
         if (res.ok) {
           const payload = await res.json();
-          // Defensive array normalization: handles both direct arrays and nested data structures
-          setVesselsData(Array.isArray(payload) ? payload : (payload.data || []));
-        } else {
-          console.warn(`⚠️ Vessels endpoint returned status ${res.status}`);
-          setVesselsData([]);
+          // Checks both flat arrays and response envelope variants
+          const cleanArray = Array.isArray(payload)
+            ? payload
+            : payload.data || payload.vessels || [];
+          setVesselsData(cleanArray);
         }
       } catch (err) {
         console.error("❌ Database sync failed for vessels:", err);
         setVesselsData([]);
       }
 
-      // STREAM 2: Fetch live threats from validated endpoint
       try {
         const res = await fetch("http://127.0.0.1:8000/api/threats");
         if (res.ok) {
           const payload = await res.json();
-          // Defensive array normalization: handles both direct arrays and nested data structures
-          setThreatsData(Array.isArray(payload) ? payload : (payload.data || []));
-        } else {
-          console.warn(`⚠️ Threats endpoint returned status ${res.status}`);
-          setThreatsData([]);
+          const cleanArray = Array.isArray(payload)
+            ? payload
+            : payload.data || payload.threats || [];
+          setThreatsData(cleanArray);
         }
       } catch (err) {
         console.error("❌ Database sync failed for threats:", err);
@@ -655,23 +673,25 @@ export default function GlobalDashboard() {
 
     pullDatabaseTelemetry();
   }, [simulationData]);
-
   /**
    * Simulation Orchestration Handler
    * Triggers multi-agent AI crisis response simulation via backend
    * Coordinates Scout Agent and Logistics Architect Agent workflows
-   * 
+   *
    * @param scenario - User-provided geopolitical scenario text input
    */
   const handleRunSimulation = async (scenario: string) => {
     setLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/simulate-crisis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenario }),
-      });
-      
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/simulate-crisis",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ scenario }),
+        },
+      );
+
       if (!response.ok) {
         console.error(`❌ Simulation API returned status ${response.status}`);
         setLoading(false);
@@ -682,7 +702,10 @@ export default function GlobalDashboard() {
       if (data.status === "success") {
         setSimulationData(data);
       } else {
-        console.warn("⚠️ Simulation completed but returned non-success status:", data);
+        console.warn(
+          "⚠️ Simulation completed but returned non-success status:",
+          data,
+        );
       }
     } catch (error) {
       console.error("❌ Simulation engine connection failure:", error);
@@ -692,7 +715,8 @@ export default function GlobalDashboard() {
   };
 
   // Derive reroute state from simulation logistics mitigation response
-  const rerouteActive = simulationData?.logistics_mitigation?.reroute_triggered || false;
+  const rerouteActive =
+    simulationData?.logistics_mitigation?.reroute_triggered || false;
 
   return (
     <div className="flex h-screen w-screen bg-[#020617] overflow-hidden antialiased text-slate-100 font-sans">
@@ -701,7 +725,6 @@ export default function GlobalDashboard() {
 
       {/* MAIN CONTENT AREA: Scrollable Dashboard Workspace */}
       <div className="flex-1 h-full flex flex-col overflow-y-auto p-6 space-y-6 custom-scrollbar">
-        
         {/* HEADER: System Status Bar */}
         <div className="flex justify-between items-center border-b border-slate-800/60 pb-5 shrink-0">
           <div>
@@ -714,17 +737,18 @@ export default function GlobalDashboard() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <span 
-              className={`h-2 w-2 rounded-full ${rerouteActive ? "bg-rose-500 animate-ping" : "bg-emerald-500"}`} 
+            <span
+              className={`h-2 w-2 rounded-full ${rerouteActive ? "bg-rose-500 animate-ping" : "bg-emerald-500"}`}
             />
             <div className="text-[10px] font-mono font-bold bg-slate-900/80 border border-slate-800 px-3 py-2 rounded text-slate-300 uppercase tracking-wider">
-              MATRIX STATE: {rerouteActive ? "CRISIS_REROUTING_ACTIVE" : "NOMINAL_MONITORING"}
+              MATRIX STATE:{" "}
+              {rerouteActive ? "CRISIS_REROUTING_ACTIVE" : "NOMINAL_MONITORING"}
             </div>
           </div>
         </div>
 
         {/* OPERATIONAL METRICS GRID: 5-Column HUD Display */}
-        <OperationalMetrics 
+        <OperationalMetrics
           vessels={vesselsData}
           threats={threatsData}
           simulationData={simulationData}
@@ -732,13 +756,12 @@ export default function GlobalDashboard() {
 
         {/* PRIMARY WORKSPACE: Map + Threat Feed Layout */}
         <div className="flex flex-col xl:flex-row gap-6 w-full items-start">
-          
           {/* LEFT PANEL: Interactive Geographic Map Canvas */}
-          <div 
+          <div
             className={`w-full xl:w-2/3 bg-slate-900/30 border border-slate-800/80 backdrop-blur-md rounded-lg flex flex-col overflow-hidden h-[560px] shrink-0 transition-all duration-300 ${
-              rerouteActive 
-                ? 'border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.15)]' 
-                : ''
+              rerouteActive
+                ? "border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.15)]"
+                : ""
             }`}
           >
             <div className="px-4 py-3 border-b border-slate-800/60 bg-slate-950">
@@ -753,9 +776,9 @@ export default function GlobalDashboard() {
 
           {/* RIGHT PANEL: Threat Intelligence Feed + Simulation Sandbox */}
           <div className="w-full xl:w-1/3 h-[560px] shrink-0 bg-slate-900/30 border border-slate-800/80 backdrop-blur-md rounded-lg overflow-hidden">
-            <ThreatAlertFeed 
-              onSimulate={handleRunSimulation} 
-              isLoading={loading} 
+            <ThreatAlertFeed
+              onSimulate={handleRunSimulation}
+              isLoading={loading}
             />
           </div>
         </div>
@@ -763,7 +786,7 @@ export default function GlobalDashboard() {
         {/* CONDITIONAL RENDER: AI Agent Insights Card */}
         {simulationData && (
           <div className="w-full transition-all duration-300">
-            <InsightCard 
+            <InsightCard
               scout={simulationData.scout_assessment}
               logistics={simulationData.logistics_mitigation}
             />

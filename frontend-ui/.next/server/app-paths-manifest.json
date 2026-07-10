@@ -1,5 +1,5 @@
 {
-  "/routes/page": "app/routes/page.js",
   "/page": "app/page.js",
-  "/ports/page": "app/ports/page.js"
+  "/ports/page": "app/ports/page.js",
+  "/routes/page": "app/routes/page.js"
 }

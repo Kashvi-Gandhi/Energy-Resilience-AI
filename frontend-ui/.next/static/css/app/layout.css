@@ -769,6 +769,9 @@ video {
 .mt-2 {
   margin-top: 0.5rem;
 }
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
 .line-clamp-2 {
   overflow: hidden;
   display: -webkit-box;
@@ -1048,6 +1051,9 @@ video {
 .justify-start {
   justify-content: flex-start;
 }
+.justify-end {
+  justify-content: flex-end;
+}
 .justify-center {
   justify-content: center;
 }
@@ -1321,6 +1327,9 @@ video {
   --tw-border-opacity: 1;
   border-color: rgb(15 23 42 / var(--tw-border-opacity, 1));
 }
+.border-cyan-800\/30 {
+  border-color: rgb(21 94 117 / 0.3);
+}
 .border-t-blue-600 {
   --tw-border-opacity: 1;
   border-top-color: rgb(37 99 235 / var(--tw-border-opacity, 1));
@@ -1472,6 +1481,17 @@ video {
 }
 .bg-white\/95 {
   background-color: rgb(255 255 255 / 0.95);
+}
+.bg-\[\#070c15\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(7 12 21 / var(--tw-bg-opacity, 1));
+}
+.bg-\[\#0b1322\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(11 19 34 / var(--tw-bg-opacity, 1));
+}
+.bg-cyan-950\/40 {
+  background-color: rgb(8 51 68 / 0.4);
 }
 .object-contain {
   -o-object-fit: contain;
