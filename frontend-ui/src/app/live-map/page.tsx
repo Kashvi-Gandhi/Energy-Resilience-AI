@@ -26,7 +26,7 @@ export default function LiveMapPage() {
   // These are passed as props to InteractiveMap so the panel actually controls the map.
   const [showHeatmaps, setShowHeatmaps] = useState(false);
   const [showPipelines, setShowPipelines] = useState(false);
-  const [mapType, setMapType] = useState("Satellite Base");
+  const [mapType, setMapType] = useState("GIS Gray");
 
   // ── Live counts for the asset readout panel ──
   const [portCount, setPortCount] = useState<number | null>(null);
@@ -183,7 +183,7 @@ export default function LiveMapPage() {
             </span>
             <div className="flex items-center justify-between text-xs text-slate-300">
               <span className="flex items-center gap-1.5">
-                <Ship className="h-3 w-3 text-slate-500" /> Tankers
+                <Ship className="h-3 w-3 text-slate-500" /> Vessels
               </span>
               <span className="font-bold text-cyan-400">
                 {vesselCount !== null ? vesselCount : "—"}
