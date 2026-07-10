@@ -65,13 +65,13 @@ def query_vector_news(query_text: str, match_threshold: float = 0.4, match_count
     # Supabase RPC endpoints are structured as: {URL}/rest/v1/rpc/{function_name}
     rpc_endpoint = f"{SUPABASE_URL}/rest/v1/rpc/match_news"
     
+    # Initialize the official Supabase Client explicitly at module scope
+supabase = None
+
+if SUPABASE_URL and SUPABASE_KEY:
     try:
-        response = requests.post(rpc_endpoint, headers=API_HEADERS, json=payload)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            print(f"❌ Vector search failed: ({response.status_code}) - {response.text}")
-            return []
+        from supabase import create_client, Client
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("✅ Supabase Client initialized successfully in database.py")
     except Exception as e:
-        print(f"❌ Network issue during vector search: {e}")
-        return []
+        print(f"⚠️ Failed to initialize official Supabase Client, using direct REST fallback: {e}")

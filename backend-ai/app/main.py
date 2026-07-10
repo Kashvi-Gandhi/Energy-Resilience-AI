@@ -49,19 +49,21 @@ def health_check():
     return {"status": "healthy", "database_connected": True}
 
 
-# --- 🛠️ NEW SUPABASE DATA EXTRACTION ENDPOINTS ---
+# --- 🛠️ UPDATED SUPABASE DATA EXTRACTION ENDPOINTS ---
 
 @app.get("/api/vessels")
 def get_live_fleet():
     """
     Fetches real-time fleet positions from Supabase, joining 
-    associated route risks and terminal names relational profiles.
+    associated route risks, origin/destination ports relational profiles.
     """
     try:
-        # Executes table joins across your primary keys
+        # Executes table joins across your primary and foreign key constraints
         response = supabase.table("vessels").select(
             "id, name, current_lat, current_lon, cargo_type, capacity_barrels, status, updated_at, "
-            "supply_routes(route_name, risk_score), refineries(refinery_name)"
+            "supply_routes(route_name, risk_score), "
+            "origin:ports!vessels_origin_port_id_fkey(name), "
+            "destination:ports!vessels_destination_port_id_fkey(name)"
         ).execute()
         return response.data
     except Exception as e:
@@ -72,15 +74,16 @@ def get_live_fleet():
 @app.get("/api/threats")
 def get_active_threat_briefs():
     """
-    Fetches hot intelligence feeds tied to corridors straight from the database matrix.
+    Fetches real-time hot intelligence incidents from the newly created active_threats ledger.
     """
     try:
-        response = supabase.table("geopolitical_news").select(
-            "id, title, content, source, created_at, supply_routes(route_name, risk_score)"
+        response = supabase.table("active_threats").select(
+            "id, event_type, severity, region, latitude, longitude, status, created_at, "
+            "supply_routes(route_name, risk_score)"
         ).order("created_at", desc=True).execute()
         return response.data
     except Exception as e:
-        print(f"❌ Supabase news read failure: {str(e)}")
+        print(f"❌ Supabase active_threats read failure: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database operational failure: {str(e)}")
     
 
@@ -98,19 +101,20 @@ def get_supply_corridors():
 
 
 @app.get("/api/ports")
-def get_refineries_and_ports():
+def get_operational_ports():
     """
-    Fetches destination refinery networks and transshipment port capacities
+    Fetches terminal transshipment port capacities directly to clear the Unregistered Hub errors
     """
     try:
-        response = supabase.table("refineries").select("id, refinery_name, location, capacity_mpda, crude_compatibility").execute()
+        response = supabase.table("ports").select(
+            "id, name, country, throughput_capacity_mtpa, crude_stream_compatibility, latitude, longitude"
+        ).order("name", desc=False).execute()
         return response.data
     except Exception as e:
-        print(f"❌ Supabase refineries fetch failure: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Database refinery node error: {str(e)}")
+        print(f"❌ Supabase ports fetch failure: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database port node error: {str(e)}")
 
 # --- ------------------------------------------ ---
-
 
 # Core Day 9 API Endpoint converted to POST to handle complex text data safely
 @app.post("/api/simulate-crisis")
