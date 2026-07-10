@@ -15,21 +15,27 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 # Initialize Gemini Client
 ai_client = genai.Client(api_key=GEMINI_API_KEY)
 
-# PostgREST API Request Headers
+# PostgREST API Request Headers (used for direct REST calls e.g. vector RPC)
 API_HEADERS = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json"
 }
 
-# 🛠️ FIX: Initialize the official Supabase Client for main.py to import
-# This satisfies: "from app.database import supabase"
-try:
-    from supabase import create_client, Client
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-except ImportError:
-    # Fallback placeholder if the supabase library isn't inside your pip env yet
-    supabase = None
+# Initialize the official Supabase Client (single authoritative initialization)
+# main.py imports this: "from app.database import supabase"
+supabase = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        from supabase import create_client, Client
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("✅ Supabase Client initialized successfully in database.py")
+    except ImportError:
+        print("⚠️ supabase-py not installed. Install it with: pip install supabase")
+        supabase = None
+    except Exception as e:
+        print(f"⚠️ Failed to initialize Supabase Client: {e}")
+        supabase = None
 
 
 def get_gemini_embedding(text: str):
@@ -48,30 +54,40 @@ def get_gemini_embedding(text: str):
 
 def query_vector_news(query_text: str, match_threshold: float = 0.4, match_count: int = 2):
     """
-    Calls the Supabase RPC match_news function via direct HTTP POST request 
-    to retrieve the most relevant geopolitical intel.
+    Calls the Supabase RPC match_news function via direct HTTP POST request
+    to retrieve the most semantically relevant geopolitical intel documents.
+
+    Uses direct REST (requests library) instead of the supabase-py client
+    because pgvector RPC calls work more reliably through raw PostgREST.
     """
     embedding = get_gemini_embedding(query_text)
     if not embedding:
         return []
 
-    # RPC payload structure matching our match_news SQL signature
+    # RPC payload structure matching our match_news SQL function signature
     payload = {
         "query_embedding": embedding,
         "match_threshold": match_threshold,
         "match_count": match_count
     }
 
-    # Supabase RPC endpoints are structured as: {URL}/rest/v1/rpc/{function_name}
+    # Supabase RPC endpoints: {URL}/rest/v1/rpc/{function_name}
     rpc_endpoint = f"{SUPABASE_URL}/rest/v1/rpc/match_news"
-    
-    # Initialize the official Supabase Client explicitly at module scope
-supabase = None
 
-if SUPABASE_URL and SUPABASE_KEY:
     try:
-        from supabase import create_client, Client
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        print("✅ Supabase Client initialized successfully in database.py")
+        response = requests.post(
+            rpc_endpoint,
+            json=payload,
+            headers=API_HEADERS,
+            timeout=30
+        )
+        response.raise_for_status()
+        results = response.json()
+        print(f"✅ Vector search returned {len(results)} matching documents")
+        return results if isinstance(results, list) else []
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Vector RPC request failure: {e}")
+        return []
     except Exception as e:
-        print(f"⚠️ Failed to initialize official Supabase Client, using direct REST fallback: {e}")
+        print(f"❌ Unexpected error in query_vector_news: {e}")
+        return []
