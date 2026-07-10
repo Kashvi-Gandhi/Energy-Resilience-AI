@@ -77,8 +77,9 @@ def get_active_threat_briefs():
     Fetches real-time hot intelligence incidents from the newly created active_threats ledger.
     """
     try:
+        # Added 'description' to the select string to feed the frontend detail window
         response = supabase.table("active_threats").select(
-            "id, event_type, severity, region, latitude, longitude, status, created_at, "
+            "id, event_type, severity, region, latitude, longitude, status, description, created_at, "
             "supply_routes(route_name, risk_score)"
         ).order("created_at", desc=True).execute()
         return response.data
