@@ -256,76 +256,104 @@ export default function PortsLedgerDashboard() {
     fetchPortTelemetry();
   }, []);
 
-  // UPDATED FILTER: Check against name and country parameters matching the schema fields
   const filteredPorts = (Array.isArray(ports) ? ports : []).filter((p: any) =>
     p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.country?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="flex h-screen w-screen bg-[#020617] overflow-hidden antialiased text-slate-100 font-sans">
+    // MATCHED: Clean white frame canvas theme background with normalized font definitions
+    <div className="flex h-screen w-screen bg-white overflow-hidden antialiased text-slate-900 font-sans">
       
       <DashboardSidebar currentRoute="Ports" />
 
-      <div className="flex-1 h-full flex flex-col overflow-y-auto p-6 space-y-6 custom-scrollbar">
+      <div className="flex-1 h-full flex flex-col p-6 space-y-6 overflow-y-auto">
         
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-800/60 pb-5 shrink-0">
+        {/* MATCHED: Exact visual alignment matching Header layouts from the Vessels Dashboard */}
+        <div className="border-b border-slate-200 pb-4 flex flex-col sm:flex-row justify-between sm:items-end gap-4">
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-cyan-500 font-mono font-bold mb-1">
-              INFRASTRUCTURE CAPACITIES MATRIX
-            </div>
-            <h1 className="text-xl font-black tracking-tight text-white uppercase font-sans">
+            <h1 className="text-lg font-black tracking-tight text-slate-900 uppercase font-mono">
               Terminal & Destination Hubs
             </h1>
+            <p className="text-xs text-slate-500 font-medium">
+              Infrastructure capacity records and crude matrix capabilities synced via telemetry logs
+            </p>
           </div>
           
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
-            <input
-              type="text"
-              placeholder="Search destination node identifier..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800/80 rounded-lg pl-9 pr-4 py-2 text-xs font-sans text-slate-200 placeholder-slate-500 focus:outline-none focus:border-slate-700 focus:ring-1 focus:ring-slate-700 transition-all"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search destination node identifier..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                // MATCHED: Refreshed search border inputs exactly echoing the asset filter bars
+                className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-sm transition-all"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="w-full bg-slate-900/30 border border-slate-800/80 backdrop-blur-md rounded-lg p-5 flex flex-col flex-1 overflow-hidden">
+        {/* Real-time Ports Counter Analytics Bar */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border border-slate-200 p-4 bg-white rounded-xl flex items-center justify-between shadow-sm">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 font-mono uppercase block">Monitored Global Hubs</span>
+              <span className="text-xl font-bold font-mono text-slate-900">{ports.length} Terminals</span>
+            </div>
+            <div className="p-2 bg-slate-50 rounded-xl border border-slate-100 text-slate-600">
+              <Anchor className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="border border-slate-200 p-4 bg-white rounded-xl flex items-center justify-between shadow-sm">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 font-mono uppercase block">Operational Throughput Base</span>
+              <span className="text-xl font-bold font-mono text-cyan-600">Active</span>
+            </div>
+            <div className="p-2 bg-slate-50 rounded-xl border border-slate-100 text-slate-600">
+              <span className="text-[10px] font-bold font-mono">MTPA</span>
+            </div>
+          </div>
+        </div>
+
+        {/* MATCHED: Replaced unstyled panels with standard container structures */}
+        <div className="border border-slate-200 bg-white rounded-xl overflow-hidden flex-1 flex flex-col justify-center shadow-sm">
           {loading ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-2 font-mono text-xs uppercase tracking-widest">
-              <Loader2 className="h-5 w-5 animate-spin text-cyan-500" />
-              <span>SYNCING PORTS INTEL SYSTEM ARRAYS...</span>
+            <div className="flex flex-col items-center justify-center text-slate-400 gap-2 p-12">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              <span className="font-mono text-[10px] uppercase tracking-wider">Querying Relational Supabase Ledger...</span>
             </div>
           ) : (
-            <div className="overflow-y-auto w-full h-full custom-scrollbar border border-slate-800/60 rounded">
+            <div className="overflow-x-auto w-full">
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 z-10 bg-slate-950 border-b border-slate-800">
-                  <tr className="text-slate-400 font-sans text-[11px] uppercase tracking-wider">
-                    <th className="px-6 py-4 font-semibold">Terminal Location Complex</th>
-                    <th className="px-6 py-4 font-semibold">Geographic Domain Area</th>
-                    <th className="px-6 py-4 font-mono text-center tracking-normal">Throughput Capacity</th>
-                    <th className="px-6 py-4 font-mono text-right tracking-normal">Crude Stream Compatibility Matrix</th>
+                <thead>
+                  {/* MATCHED: High visibility background header structure tracking exact font attributes */}
+                  <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 font-mono">
+                    <th className="px-6 py-3">Terminal Location Complex</th>
+                    <th className="px-6 py-3">Geographic Domain Area</th>
+                    <th className="px-6 py-3 text-center">Throughput Capacity</th>
+                    <th className="px-6 py-3 text-right">Crude Stream Compatibility Matrix</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-900/60 font-sans text-sm text-slate-300">
+                <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
                   {filteredPorts.length > 0 ? (
                     filteredPorts.map((p: any, i: number) => (
-                      <tr key={p.id || i} className="hover:bg-slate-900/40 transition-colors">
-                        <td className="px-6 py-4 font-bold text-white flex items-center gap-3">
-                          <Anchor className="h-4 w-4 text-slate-500 shrink-0" />
-                          <span>{p.name || "UNREGISTERED HUB"}</span>
+                      <tr key={p.id || i} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="px-6 py-3.5 font-bold text-slate-900">
+                          <div className="flex items-center gap-2.5">
+                            <Anchor className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                            <span>{p.name || "UNREGISTERED HUB"}</span>
+                          </div>
                         </td>
-                        {/* FIXED: Using country column parameter */}
-                        <td className="px-6 py-4 text-slate-400 text-xs font-medium">{p.country || "International Vector Zone"}</td>
-                        
-                        {/* FIXED: Using throughput_capacity_mtpa column parameter */}
-                        <td className="px-6 py-4 text-center font-mono text-xs text-white font-black tracking-tight">
-                          {(p.throughput_capacity_mtpa ?? 0.0).toFixed(1)} <span className="text-[10px] text-slate-500 font-normal">MTPA</span>
+                        <td className="px-6 py-3.5 text-slate-500 font-medium font-sans">
+                          {p.country || "International Vector Zone"}
                         </td>
-                        
-                        {/* FIXED: Using crude_stream_compatibility column array parameter */}
-                        <td className="px-6 py-4 text-right font-mono text-xs text-cyan-400 font-bold tracking-wide">
+                        <td className="px-6 py-3.5 text-center font-mono font-bold text-slate-800">
+                          {(p.throughput_capacity_mtpa ?? 0.0).toFixed(1)}{" "}
+                          <span className="text-[10px] text-slate-400 font-normal">MTPA</span>
+                        </td>
+                        <td className="px-6 py-3.5 text-right font-mono text-[11px] text-cyan-600 font-semibold tracking-tight">
                           {Array.isArray(p.crude_stream_compatibility) && p.crude_stream_compatibility.length > 0
                             ? p.crude_stream_compatibility.join(" // ") 
                             : "General Crude Blend"}
@@ -334,8 +362,8 @@ export default function PortsLedgerDashboard() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center font-mono text-xs text-slate-500 uppercase tracking-widest bg-slate-950/20">
-                        <ServerCrash className="h-5 w-5 mx-auto mb-2 text-slate-600" />
+                      <td colSpan={4} className="px-6 py-12 text-center font-mono text-xs text-slate-400 uppercase tracking-widest bg-slate-50/10">
+                        <ServerCrash className="h-5 w-5 mx-auto mb-2 text-slate-300" />
                         NO NODES FOUND WITHIN LOGISTICS RANGE PARAMS
                       </td>
                     </tr>

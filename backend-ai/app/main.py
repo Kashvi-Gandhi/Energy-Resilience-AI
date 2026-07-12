@@ -115,6 +115,61 @@ def get_operational_ports():
         print(f"❌ Supabase ports fetch failure: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database port node error: {str(e)}")
 
+
+@app.get("/api/reports")
+def get_intelligence_reports():
+    """
+    Aggregates active geopolitical threats from the database and maps them
+    on the fly into cryptographically structured report dossiers.
+    """
+    try:
+        # Querying your existing active_threats table, joining supply_routes metadata
+        response = supabase.table("active_threats").select(
+            "id, event_type, severity, region, description, created_at, "
+            "supply_routes(route_name)"
+        ).order("created_at", desc=True).execute()
+        
+        threats = response.data or []
+        reports_dossier = []
+        
+        for index, threat in enumerate(threats):
+            # 1. Dynamically structure an executive-level report title
+            event = threat.get("event_type", "Security Vector Incident").upper()
+            route_info = threat.get("supply_routes")
+            route_name = route_info.get("route_name") if route_info else None
+            location_anchor = route_name or threat.get("region", "Global Operations Axis")
+            
+            title = f"{event} INTERCEPT DOCKET ({location_anchor.upper()})"
+            
+            # 2. Translate database threat severity into standard compliance classification tiers
+            severity_tier = str(threat.get("severity", "")).upper()
+            if "CRITICAL" in severity_tier or "HIGH" in severity_tier:
+                classification = "SECRET"
+            elif "MEDIUM" in severity_tier:
+                classification = "RESTRICTED"
+            else:
+                classification = "CONFIDENTIAL"
+                
+            # 3. Formulate file weights programmatically based on string size
+            desc_len = len(threat.get("description") or "")
+            mock_size = f"{round((desc_len % 15) + 2.4, 1)} MB"
+            
+            reports_dossier.append({
+                "id": threat.get("id", str(index)),
+                "title": title,
+                "created_at": threat.get("created_at"),
+                "origin_branch": f"Sector: {threat.get('region', 'Tactical HQ')}",
+                "file_size": mock_size,
+                "security_classification": classification,
+                "description": threat.get("description", "No historical analyst field logs written.")
+            })
+            
+        return reports_dossier
+
+    except Exception as e:
+        print(f"❌ Supabase aggregation mapping failure: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database aggregation exception: {str(e)}")
+
 # --- ------------------------------------------ ---
 
 # Core Day 9 API Endpoint converted to POST to handle complex text data safely
