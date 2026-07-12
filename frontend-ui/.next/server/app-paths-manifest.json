@@ -1,7 +1,7 @@
 {
+  "/risk-intelligence/page": "app/risk-intelligence/page.js",
   "/routes/page": "app/routes/page.js",
-  "/threats/page": "app/threats/page.js",
   "/vessels/page": "app/vessels/page.js",
-  "/live-map/page": "app/live-map/page.js",
-  "/page": "app/page.js"
+  "/reports/page": "app/reports/page.js",
+  "/ports/page": "app/ports/page.js"
 }
