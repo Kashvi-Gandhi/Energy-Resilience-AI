@@ -25,9 +25,9 @@
 //   return (
 //     <div className="flex h-screen w-screen bg-[#F8FAFC] overflow-hidden antialiased">
 //       <DashboardSidebar currentRoute="Simulation" />
-      
+
 //       <div className="flex-1 h-full flex flex-col p-6 space-y-6 overflow-y-auto">
-        
+
 //         {/* Header Title Section */}
 //         <div className="border-b border-slate-200 pb-4">
 //           <h1 className="text-lg font-black tracking-tight text-slate-900 uppercase font-mono">Crisis Simulation Laboratory</h1>
@@ -36,11 +36,11 @@
 
 //         {/* Sandbox Content Layout Split Grid */}
 //         <div className="grid grid-cols-3 gap-6 items-start">
-          
+
 //           {/* LEFT PANELS: Simulation Configuration Buttons */}
 //           <div className="col-span-2 space-y-4">
 //             <span className="text-[10px] font-bold text-slate-400 font-mono uppercase tracking-wider block">Select Anomaly Vectors</span>
-            
+
 //             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 //               {presets.map((p) => {
 //                 const Icon = p.icon;
@@ -125,19 +125,6 @@
 //   );
 // }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // "use client";
 
 // import React, { useState } from "react";
@@ -208,7 +195,7 @@
 //       <DashboardSidebar currentRoute="Simulation" />
 
 //       <div className="flex-1 h-full flex flex-col p-4 md:p-6 space-y-6 overflow-y-auto">
-        
+
 //         {/* HEADER BAR */}
 //         <div className="border-b border-slate-200 pb-4 shrink-0">
 //           <h1 className="text-base md:text-lg font-black tracking-tight text-slate-900 uppercase font-mono">
@@ -221,10 +208,10 @@
 
 //         {/* WORKSPACE LAYOUT CONTAINER */}
 //         <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start min-h-0">
-          
+
 //           {/* LEFT PANELS COLUMN */}
 //           <div className="lg:col-span-2 space-y-6 flex flex-col h-full overflow-y-auto pr-1">
-            
+
 //             {/* ANOMALY VECTOR SELECTION CARDS */}
 //             <div>
 //               <span className="text-[10px] font-bold text-slate-400 font-mono uppercase tracking-wider block mb-3">
@@ -232,7 +219,7 @@
 //               </span>
 //               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
 //                 {anomalyVectors.map((vector) => (
-//                   <button 
+//                   <button
 //                     key={vector.id}
 //                     onClick={() => { setSelectedVector(vector); setSimResult(null); }}
 //                     className={`text-left border rounded-xl p-4 bg-white shadow-sm flex flex-col justify-between transition-all relative overflow-hidden h-32 ${
@@ -268,16 +255,16 @@
 //                   Manual Variable Manipulation
 //                 </span>
 //               </div>
-              
+
 //               <div className="space-y-2">
 //                 <div className="flex justify-between items-center text-xs font-mono">
 //                   <span className="text-slate-700 font-medium">Simulated Insurance Premium Surge Scale</span>
 //                   <span className="text-blue-600 font-bold">+{premiumSurge}%</span>
 //                 </div>
-//                 <input 
-//                   type="range" 
-//                   min="0" 
-//                   max="100" 
+//                 <input
+//                   type="range"
+//                   min="0"
+//                   max="100"
 //                   value={premiumSurge}
 //                   onChange={(e) => setPremiumSurge(Number(e.target.value))}
 //                   className="w-full accent-blue-600 h-1 bg-slate-100 rounded-lg cursor-pointer"
@@ -290,7 +277,7 @@
 //               <div className="space-y-1 text-center sm:text-left">
 //                 <p className="text-[10px] font-mono font-bold text-blue-400 tracking-wider uppercase">AUTOMATED RESPONSE PROTOCOL</p>
 //                 <p className="text-xs text-slate-300 max-w-md font-sans">
-//                   {selectedVector 
+//                   {selectedVector
 //                     ? `Ready to push '${selectedVector.title}' configuration to live evaluation neural models.`
 //                     : "Select an anomaly variable configuration card above to initialize computation path."}
 //                 </p>
@@ -334,7 +321,7 @@
 //                 </div>
 //               ) : simResult ? (
 //                 <div className="space-y-4 animate-in fade-in duration-200">
-                  
+
 //                   {/* SCOUT AGENT RECON BLOCK */}
 //                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
 //                     <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
@@ -344,8 +331,8 @@
 //                       </span>
 //                     </div>
 //                     <p className="text-[11px] text-slate-700 font-sans leading-relaxed">
-//                       {typeof simResult.scout_assessment === "string" 
-//                         ? simResult.scout_assessment 
+//                       {typeof simResult.scout_assessment === "string"
+//                         ? simResult.scout_assessment
 //                         : (simResult.scout_assessment?.assessment || "High risk variance detected near chokepoint bottleneck vectors. Route diversion advised.")}
 //                     </p>
 //                   </div>
@@ -356,7 +343,7 @@
 //                       <span className="text-[10px] font-bold text-blue-700 uppercase">2. Logistics Plan</span>
 //                       <span className={`text-[10px] px-1.5 py-0.5 rounded font-black uppercase border ${
 //                         simResult.logistics_mitigation?.reroute_triggered || simResult.logistics_mitigation?.reroute_triggered === undefined
-//                           ? "bg-amber-50 text-amber-700 border-amber-200" 
+//                           ? "bg-amber-50 text-amber-700 border-amber-200"
 //                           : "bg-emerald-50 text-emerald-700 border-emerald-200"
 //                       }`}>
 //                         {simResult.logistics_mitigation?.reroute_triggered !== false ? "Reroute Enforced" : "Course Maintained"}
@@ -404,25 +391,19 @@
 //   );
 // }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 "use client";
 
 import React, { useState } from "react";
 import DashboardSidebar from "../../components/DashboardSidebar";
-import { Sliders, Activity, Play, Loader2, CheckCircle, HelpCircle, RefreshCw } from "lucide-react";
+import {
+  Sliders,
+  Activity,
+  Play,
+  Loader2,
+  CheckCircle,
+  HelpCircle,
+  RefreshCw,
+} from "lucide-react";
 
 export default function SimulationPage() {
   const [premiumSurge, setPremiumSurge] = useState(25);
@@ -437,22 +418,25 @@ export default function SimulationPage() {
       title: "CATEGORY 5 TYPHOON ARRAY",
       location: "South China Sea",
       icon: "⚡",
-      prompt: "A massive Category 5 Typhoon Array is moving across the South China Sea shipping corridors with waves exceeding 12 meters."
+      prompt:
+        "A massive Category 5 Typhoon Array is moving across the South China Sea shipping corridors with waves exceeding 12 meters.",
     },
     {
       id: "blockade",
       title: "CHOKEPOINT KINETIC BLOCKADE",
       location: "Strait of Hormuz",
       icon: "🔥",
-      prompt: "Unannounced naval military exercises and kinetic blockades have completely closed commercial shipping lanes inside the Strait of Hormuz."
+      prompt:
+        "Unannounced naval military exercises and kinetic blockades have completely closed commercial shipping lanes inside the Strait of Hormuz.",
     },
     {
       id: "spoofing",
       title: "PORT AIS SAT-SPOOFING WAVE",
       location: "Rotterdam Terminals",
       icon: "⚠️",
-      prompt: "A coordinates sat-spoofing injection wave is causing widespread telemetry disruption around the Rotterdam Port terminal entries."
-    }
+      prompt:
+        "A coordinates sat-spoofing injection wave is causing widespread telemetry disruption around the Rotterdam Port terminal entries.",
+    },
   ];
 
   // Dispatches simulation request to the FastAPI multi-agent ecosystem
@@ -462,13 +446,16 @@ export default function SimulationPage() {
     setSimResult(null);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/simulate-crisis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scenario: `${vector.prompt} Global operational insurance premiums are inflated by +${premiumSurge}%.`
-        })
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/simulate-crisis",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scenario: `${vector.prompt} Global operational insurance premiums are inflated by +${premiumSurge}%.`,
+          }),
+        },
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -477,7 +464,10 @@ export default function SimulationPage() {
         console.error("Simulation framework pipeline returned an error code.");
       }
     } catch (err) {
-      console.error("❌ Agent simulation execution framework dropped connection:", err);
+      console.error(
+        "❌ Agent simulation execution framework dropped connection:",
+        err,
+      );
     } finally {
       setLoading(false);
     }
@@ -489,23 +479,21 @@ export default function SimulationPage() {
 
       {/* COMPONENT SCROLLBOARD VIEWPORT FRAME */}
       <div className="flex-1 h-full flex flex-col p-4 md:p-6 space-y-6 overflow-y-auto">
-        
         {/* TOP LEVEL ROUTE BRANDING HEADER */}
         <div className="border-b border-slate-200 pb-4 shrink-0">
           <h1 className="text-base md:text-lg font-black tracking-tight text-slate-900 uppercase font-mono">
             Crisis Simulation Laboratory
           </h1>
           <p className="text-xs text-slate-500 font-medium">
-            Inject custom disruption events or presets to evaluate real-time fleet mitigation decisions
+            Inject custom disruption events or presets to evaluate real-time
+            fleet mitigation decisions
           </p>
         </div>
 
         {/* WORKSPACE COLUMN LAYOUT GRID */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start min-h-0">
-          
           {/* LEFT WORKING PARAMETERS HUB */}
           <div className="lg:col-span-2 space-y-6 flex flex-col h-full overflow-y-auto pr-1">
-            
             {/* ANOMALY PRESET SELECTOR TRACKS */}
             <div>
               <span className="text-[10px] font-bold text-slate-400 font-mono uppercase tracking-wider block mb-3">
@@ -513,11 +501,16 @@ export default function SimulationPage() {
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {anomalyVectors.map((vector) => (
-                  <button 
+                  <button
                     key={vector.id}
-                    onClick={() => { setSelectedVector(vector); setSimResult(null); }}
+                    onClick={() => {
+                      setSelectedVector(vector);
+                      setSimResult(null);
+                    }}
                     className={`text-left border rounded-xl p-4 bg-white shadow-sm flex flex-col justify-between transition-all relative overflow-hidden h-32 ${
-                      selectedVector?.id === vector.id ? "border-blue-500 ring-2 ring-blue-500/10 bg-slate-50/40" : "border-slate-200 hover:border-slate-300"
+                      selectedVector?.id === vector.id
+                        ? "border-blue-500 ring-2 ring-blue-500/10 bg-slate-50/40"
+                        : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
                     <div className="flex justify-between items-start w-full">
@@ -534,7 +527,9 @@ export default function SimulationPage() {
                       <h3 className="text-xs font-black text-slate-900 font-mono tracking-tight leading-tight uppercase">
                         {vector.title}
                       </h3>
-                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">{vector.location}</p>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                        {vector.location}
+                      </p>
                     </div>
                   </button>
                 ))}
@@ -549,16 +544,20 @@ export default function SimulationPage() {
                   Manual Variable Manipulation
                 </span>
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-slate-700 font-medium">Simulated Insurance Premium Surge Scale</span>
-                  <span className="text-blue-600 font-bold">+{premiumSurge}%</span>
+                  <span className="text-slate-700 font-medium">
+                    Simulated Insurance Premium Surge Scale
+                  </span>
+                  <span className="text-blue-600 font-bold">
+                    +{premiumSurge}%
+                  </span>
                 </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
                   value={premiumSurge}
                   onChange={(e) => setPremiumSurge(Number(e.target.value))}
                   className="w-full accent-blue-600 h-1 bg-slate-100 rounded-lg cursor-pointer"
@@ -573,7 +572,8 @@ export default function SimulationPage() {
                   AUTOMATED CRISIS INJECTION PROTOCOL
                 </p>
                 <p className="text-[11px] text-slate-400 font-sans">
-                  Modify the selected vector parameters below or type a completely custom operational threat scenario manually.
+                  Modify the selected vector parameters below or type a
+                  completely custom operational threat scenario manually.
                 </p>
               </div>
 
@@ -583,14 +583,17 @@ export default function SimulationPage() {
                 value={selectedVector ? selectedVector.prompt : ""}
                 onChange={(e) => {
                   if (selectedVector) {
-                    setSelectedVector({ ...selectedVector, prompt: e.target.value });
+                    setSelectedVector({
+                      ...selectedVector,
+                      prompt: e.target.value,
+                    });
                   } else {
                     setSelectedVector({
                       id: "custom_ad_hoc",
                       title: "AD-HOC INJECTED CRISIS VECTOR",
                       location: "Global Grid Coordinates",
                       icon: "🌐",
-                      prompt: e.target.value
+                      prompt: e.target.value,
                     });
                   }
                 }}
@@ -600,7 +603,11 @@ export default function SimulationPage() {
 
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-900">
                 <div className="text-[10px] font-mono text-slate-500 text-center sm:text-left">
-                  {selectedVector?.id === "custom_ad_hoc" ? "⚠️ CUSTOM RUNTIME INJECT ACTIVE" : selectedVector ? "✅ CARD VARIABLE CONFIG LOADED" : "💡 WAITING FOR CONSOLE INPUT PARAMETERS"}
+                  {selectedVector?.id === "custom_ad_hoc"
+                    ? "⚠️ CUSTOM RUNTIME INJECT ACTIVE"
+                    : selectedVector
+                      ? "✅ CARD VARIABLE CONFIG LOADED"
+                      : "💡 WAITING FOR CONSOLE INPUT PARAMETERS"}
                 </div>
                 <button
                   disabled={loading || !selectedVector?.prompt.trim()}
@@ -621,94 +628,112 @@ export default function SimulationPage() {
                 </button>
               </div>
             </div>
-
           </div>
 
           {/* RIGHT COLUMNS VIEWPORT HUB: DYNAMIC SIMULATION MATRIX LOG */}
-          <div className="border border-slate-200 bg-white rounded-xl h-full shadow-sm flex flex-col overflow-hidden min-h-[400px] lg:min-h-0">
-            <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2 shrink-0">
-              <Activity className="h-4 w-4 text-slate-500" />
-              <span className="text-[10px] font-bold text-slate-400 font-mono uppercase tracking-wider">
-                Simulation Matrix Log
-              </span>
-            </div>
-
-            <div className="flex-1 p-4 overflow-y-auto font-mono text-xs space-y-4">
-              {loading ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2 p-6 text-center">
-                  <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mb-1" />
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-slate-700">Executing Agent Framework...</span>
-                  <p className="text-[10px] text-slate-400 max-w-[220px] leading-tight font-sans">Querying vector news weights and running rerouting algorithms.</p>
+          {/* DYNAMIC LOG STATE INTERFACES CONTAINER */}
+          <div className="flex-1 p-4 overflow-y-auto font-mono text-xs space-y-4">
+            {loading ? (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2 p-6 text-center">
+                <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mb-1" />
+                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-700">
+                  Executing Agent Framework...
+                </span>
+                <p className="text-[10px] text-slate-400 max-w-[220px] leading-tight font-sans">
+                  Querying vector news weights and running rerouting algorithms.
+                </p>
+              </div>
+            ) : simResult ? (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                {/* SCOUT AGENT RECON BLOCK */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">
+                      1. Scout Assessment
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded font-black">
+                      {/* Dynamically fallback to 0 or N/A instead of a fake '85' risk score */}
+                      SCORE:{" "}
+                      {simResult.scout_assessment?.risk_score !== undefined
+                        ? `${simResult.scout_assessment.risk_score}/100`
+                        : "PENDING"}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-700 font-sans leading-relaxed">
+                    {typeof simResult.scout_assessment === "string"
+                      ? simResult.scout_assessment
+                      : simResult.scout_assessment?.assessment ||
+                        simResult.scout_assessment?.risk_analysis ||
+                        "No assessment breakdown text returned by the Scout Agent."}
+                  </div>
                 </div>
-              ) : simResult ? (
-                <div className="space-y-4 animate-in fade-in duration-200">
-                  
-                  {/* SCOUT ASSESSMENT OUTCOME BOX */}
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">1. Scout Assessment</span>
-                      <span className="text-[10px] px-1.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded font-black">
-                        SCORE: {simResult.scout_assessment?.risk_score ?? "85"}/100
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-700 font-sans leading-relaxed">
-                      {typeof simResult.scout_assessment === "string" 
-                        ? simResult.scout_assessment 
-                        : (simResult.scout_assessment?.assessment || "High risk variance detected near chokepoint bottleneck vectors. Route diversion advised.")}
-                    </p>
-                  </div>
 
-                  {/* LOGISTICS AGENT MITIGATION RE-ROUTE BOX */}
-                  <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-200 space-y-2">
-                    <div className="flex items-center justify-between border-b border-blue-100/50 pb-1.5">
-                      <span className="text-[10px] font-bold text-blue-700 uppercase">2. Logistics Plan</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-black uppercase border ${
-                        simResult.logistics_mitigation?.reroute_triggered || simResult.logistics_mitigation?.reroute_triggered === undefined
-                          ? "bg-amber-50 text-amber-700 border-amber-200" 
-                          : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      }`}>
-                        {simResult.logistics_mitigation?.reroute_triggered !== false ? "Reroute Enforced" : "Course Maintained"}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-700 font-sans leading-relaxed">
-                      {typeof simResult.logistics_mitigation === "string"
-                        ? simResult.logistics_mitigation
-                        : (simResult.logistics_mitigation?.recommendation || "Alternative routing streams deployed to safe-harbor the active vessel fleet.")}
-                    </p>
+                {/* LOGISTICS AGENT MITIGATION RE-ROUTE BOX */}
+                <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-200 space-y-2">
+                  <div className="flex items-center justify-between border-b border-blue-100/50 pb-1.5">
+                    <span className="text-[10px] font-bold text-blue-700 uppercase">
+                      2. Logistics Plan
+                    </span>
+                    {/* Dynamically reads boolean status, applying neutral styling if no action was decided */}
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded font-black uppercase border ${
+                        simResult.logistics_mitigation?.reroute_triggered ===
+                        true
+                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                          : simResult.logistics_mitigation
+                                ?.reroute_triggered === false
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : "bg-slate-50 text-slate-600 border-slate-200"
+                      }`}
+                    >
+                      {simResult.logistics_mitigation?.reroute_triggered ===
+                      true
+                        ? "Reroute Enforced"
+                        : simResult.logistics_mitigation?.reroute_triggered ===
+                            false
+                          ? "Course Maintained"
+                          : "Analysis Evaluated"}
+                    </span>
                   </div>
+                  <div className="text-[11px] text-slate-700 font-sans leading-relaxed">
+                    {typeof simResult.logistics_mitigation === "string"
+                      ? simResult.logistics_mitigation
+                      : simResult.logistics_mitigation?.recommendation ||
+                        simResult.logistics_mitigation?.mitigation_plan ||
+                        "No action recommendations specified by the Logistics Agent."}
+                  </div>
+                </div>
 
-                  {/* LIVE COMPUTATION CONFIRMATION CARD */}
+                {/* DYNAMIC SYSTEM RESPONSE CARD */}
+                {simResult.status === "success" && (
                   <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 flex items-start gap-2.5 text-[11px] font-sans">
                     <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
                     <div>
-                      <p className="font-bold font-mono text-[10px] uppercase text-emerald-900">Calculations Complete</p>
-                      <p className="text-emerald-700 mt-0.5">Telemetry matrix has successfully synced and propagated adjustments to current fleet routes.</p>
+                      <p className="font-bold font-mono text-[10px] uppercase text-emerald-900">
+                        Pipeline Execution Complete
+                      </p>
+                      <p className="text-emerald-700 mt-0.5">
+                        The multi-agent simulation run completed successfully
+                        against target variables.
+                      </p>
                     </div>
                   </div>
-
-                </div>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center p-6">
-                  <HelpCircle className="h-5 w-5 mb-1.5 text-slate-300" />
-                  <span className="uppercase text-[10px] tracking-wider block font-bold text-slate-400">Laboratory Dormant</span>
-                  <p className="text-[10px] text-slate-400 max-w-[200px] mt-0.5 leading-tight font-sans">Select a threat card or type in the injection terminal field to launch multi-agent path analysis.</p>
-                </div>
-              )}
-            </div>
-
-            {/* BASE FRAME FOOTER SECURITY SYSTEM STATUS BAR */}
-            <div className="bg-slate-900 text-[10px] text-slate-400 font-mono p-3 px-4 border-t border-slate-800 shrink-0 flex items-center justify-between">
-              <span>CRISIS INTERACTION MATRIX</span>
-              <div className="flex items-center gap-1.5">
-                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-slate-500">READY</span>
+                )}
               </div>
-            </div>
-
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center p-6">
+                <HelpCircle className="h-5 w-5 mb-1.5 text-slate-300" />
+                <span className="uppercase text-[10px] tracking-wider block font-bold text-slate-400">
+                  Laboratory Dormant
+                </span>
+                <p className="text-[10px] text-slate-400 max-w-[200px] mt-0.5 leading-tight font-sans">
+                  Select a threat card or type in the injection terminal field
+                  to launch multi-agent path analysis.
+                </p>
+              </div>
+            )}
           </div>
-
         </div>
-
       </div>
     </div>
   );
