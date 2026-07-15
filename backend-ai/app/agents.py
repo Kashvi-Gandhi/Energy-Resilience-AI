@@ -27,6 +27,7 @@ def run_scout_agent(intel_context: list, user_scenario: str = "") -> dict:
         return {
             "risk_score": 5,
             "primary_threat": "Operational sectors reporting normal parameters. No verified hostile matching anomalies detected.",
+            "risk_analysis": "No relevant historical context was retrieved. Scenario does not breach the similarity threshold required for full assessment.",
             "target_route_id": None
         }
         
@@ -67,9 +68,10 @@ def run_scout_agent(intel_context: list, user_scenario: str = "") -> dict:
                     type=types.Type.OBJECT,
                     properties={
                         "risk_score": types.Schema(type=types.Type.INTEGER, description="Integer calculated strictly from the user scenario based on the scoring matrix."),
-                        "primary_threat": types.Schema(type=types.Type.STRING, description="Brief explanation of why the user scenario got this exact score.")
+                        "primary_threat": types.Schema(type=types.Type.STRING, description="Brief one-sentence explanation of why the user scenario received this exact score."),
+                        "risk_analysis": types.Schema(type=types.Type.STRING, description="Detailed multi-paragraph LLM analysis: threat breakdown, affected corridors, escalation probability, and recommended watch posture.")
                     },
-                    required=["risk_score", "primary_threat"]
+                    required=["risk_score", "primary_threat", "risk_analysis"]
                 )
             )
         )
@@ -80,7 +82,7 @@ def run_scout_agent(intel_context: list, user_scenario: str = "") -> dict:
         
     except Exception as e:
         print(f"❌ Scout Agent Generation Failure: {e}")
-        return {"risk_score": 5, "primary_threat": "Operational baseline quiet.", "target_route_id": None}
+        return {"risk_score": 5, "primary_threat": "Operational baseline quiet.", "risk_analysis": "Scout agent encountered a generation failure. Defaulting to baseline quiet posture.", "target_route_id": None}
 
 
 def run_logistics_agent(scout_analysis: dict, premium_surge: int = 25) -> dict:
@@ -103,7 +105,27 @@ def run_logistics_agent(scout_analysis: dict, premium_surge: int = 25) -> dict:
             vessels = []
             
         affected_names = [v["name"] for v in vessels]
-        
+
+        # --- Live DB Writeback: mark vessel status immediately on risk threshold breach ---
+        # provisional_reroute mirrors the final reroute_triggered logic below so the DB
+        # reflects the correct action state before the AI generation round-trip completes.
+        provisional_reroute = not (premium_surge >= 70 and risk_score < 90)
+        vessel_status = "Rerouting" if provisional_reroute else "Sheltering"
+        patch_headers = {**API_HEADERS, "Prefer": "return=minimal"}
+        patch_payload = {"status": vessel_status}
+        try:
+            patch_resp = requests.patch(
+                vessels_endpoint,
+                headers=patch_headers,
+                json=patch_payload
+            )
+            if patch_resp.status_code in (200, 204):
+                print(f"✅ DB Writeback: {len(affected_names)} vessel(s) on route {route_id} → status='{vessel_status}'")
+            else:
+                print(f"⚠️ DB Writeback failed (HTTP {patch_resp.status_code}): {patch_resp.text}")
+        except Exception as patch_err:
+            print(f"❌ DB Writeback exception: {patch_err}")
+
         # We inject the premium surge variable dynamically into the AI prompt rules
         prompt = f"""
         You are a Supply Chain Optimization Expert (The Logistics Architect Agent).
