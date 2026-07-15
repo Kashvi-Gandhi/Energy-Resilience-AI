@@ -183,27 +183,22 @@ def simulate_crisis_event(payload: CrisisRequest):
     scenario = payload.scenario
     premium_surge = payload.premium_surge
     
-    # Package premium context cleanly into the prompt string
-    full_scenario_text = f"{scenario} [CRITICAL VARIABLE: Global operational insurance premiums inflated by +{premium_surge}%]"
-    
-    print(f"\n⚡ Initiating Full Agent Simulation")
-    print(f"📖 Scenario: '{scenario}'")
-    print(f"💰 Insurance Premium Surge: +{premium_surge}%")
+    print(f"\n⚡ Initiating Full Agent Simulation for: '{scenario}'")
+    print(f"💰 Global Premium Surge Scale: +{premium_surge}%")
     
     try:
         # 1. Gather context from our vector data store
         intel_context = query_vector_news(query_text=scenario, match_threshold=0.3, match_count=1)
         
-        # 2. Execute Agent 1 (Assessment) - Passed the raw scenario context
-        raw_scout_assessment = run_scout_agent(intel_context, user_scenario=full_scenario_text)
+        # 2. Execute Agent 1 (Assessment)
+        raw_scout_assessment = run_scout_agent(intel_context, user_scenario=scenario)
         
-        # 3. Execute Agent 2 (Mitigation Planning) - Explicitly passing both the Scout intelligence AND the premium surge variable
-        raw_logistics_plan = run_logistics_agent(
-            scout_assessment=raw_scout_assessment, 
-            premium_surge=premium_surge
-        )
+        # 3. Execute Agent 2 (Mitigation Planning) with the premium surge variable included
+        raw_logistics_plan = run_logistics_agent(raw_scout_assessment, premium_surge=premium_surge)
         
         # --- 🛠️ ROBUST PARSING ENGINE LOGIC ---
+        
+        # Process Scout Data Structure Safely
         scout_data = {}
         if isinstance(raw_scout_assessment, dict):
             scout_data["risk_score"] = raw_scout_assessment.get("risk_score", 75)
@@ -213,29 +208,30 @@ def simulate_crisis_event(payload: CrisisRequest):
                 str(raw_scout_assessment)
             )
         else:
-            scout_data["risk_score"] = 80
+            scout_data["risk_score"] = 80  
             scout_data["assessment"] = str(raw_scout_assessment)
 
+        # Process Logistics Data Structure Safely
         logistics_data = {}
         if isinstance(raw_logistics_plan, dict):
-            trigger_status = (
-                raw_logistics_plan.get("reroute_triggered") or 
-                raw_logistics_plan.get("action_required") or 
-                True
-            )
+            # Use .get() with an explicit default value instead of 'or True'
+            trigger_status = raw_logistics_plan.get("reroute_triggered", True)
             logistics_data["reroute_triggered"] = bool(trigger_status)
-            logistics_data["recommendation"] = (
+            
+            logistics_data["strategic_recommendation"] = (
+                raw_logistics_plan.get("strategic_recommendation") or
                 raw_logistics_plan.get("recommendation") or 
                 raw_logistics_plan.get("mitigation_plan") or 
                 str(raw_logistics_plan)
             )
         else:
             logistics_data["reroute_triggered"] = True
-            logistics_data["recommendation"] = str(raw_logistics_plan)
-            
+            logistics_data["strategic_recommendation"] = str(raw_logistics_plan)
+                
         print(f"📊 Processed Scout Risk Score: {scout_data['risk_score']}/100")
         print(f"⚓ Processed Logistics Action Triggered: {logistics_data['reroute_triggered']}")
         
+        # 4. Return formatted combined operational intelligence back to client
         return {
             "status": "success",
             "input_scenario": scenario,

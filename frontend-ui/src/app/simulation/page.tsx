@@ -452,7 +452,8 @@ export default function SimulationPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            scenario: `${vector.prompt} Global operational insurance premiums are inflated by +${premiumSurge}%.`,
+            scenario: vector.prompt,
+            premium_surge: premiumSurge, // 👈 Send the slider state directly as an integer to the backend!
           }),
         },
       );
@@ -674,7 +675,6 @@ export default function SimulationPage() {
                     <span className="text-[10px] font-bold text-blue-700 uppercase">
                       2. Logistics Plan
                     </span>
-                    {/* Dynamically reads boolean status, applying neutral styling if no action was decided */}
                     <span
                       className={`text-[10px] px-1.5 py-0.5 rounded font-black uppercase border ${
                         simResult.logistics_mitigation?.reroute_triggered ===
@@ -698,8 +698,9 @@ export default function SimulationPage() {
                   <div className="text-[11px] text-slate-700 font-sans leading-relaxed">
                     {typeof simResult.logistics_mitigation === "string"
                       ? simResult.logistics_mitigation
-                      : simResult.logistics_mitigation?.recommendation ||
-                        simResult.logistics_mitigation?.mitigation_plan ||
+                      : simResult.logistics_mitigation
+                          ?.strategic_recommendation ||
+                        simResult.logistics_mitigation?.recommendation ||
                         "No action recommendations specified by the Logistics Agent."}
                   </div>
                 </div>
