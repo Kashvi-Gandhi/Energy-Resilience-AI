@@ -404,6 +404,7 @@ import {
   HelpCircle,
   RefreshCw,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 export default function SimulationPage() {
   const [premiumSurge, setPremiumSurge] = useState(25);
@@ -677,31 +678,27 @@ export default function SimulationPage() {
                     </span>
                     <span
                       className={`text-[10px] px-1.5 py-0.5 rounded font-black uppercase border ${
-                        simResult.logistics_mitigation?.reroute_triggered ===
-                        true
+                        simResult.logistics_mitigation?.reroute_triggered === true
                           ? "bg-amber-50 text-amber-700 border-amber-200"
-                          : simResult.logistics_mitigation
-                                ?.reroute_triggered === false
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : "bg-slate-50 text-slate-600 border-slate-200"
+                          : (simResult.scout_assessment?.risk_score ?? 0) >= 70 &&
+                              simResult.logistics_mitigation?.reroute_triggered === false
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
                       }`}
                     >
-                      {simResult.logistics_mitigation?.reroute_triggered ===
-                      true
+                      {simResult.logistics_mitigation?.reroute_triggered === true
                         ? "Reroute Enforced"
-                        : simResult.logistics_mitigation?.reroute_triggered ===
-                            false
-                          ? "Course Maintained"
-                          : "Analysis Evaluated"}
+                        : (simResult.scout_assessment?.risk_score ?? 0) >= 70 &&
+                            simResult.logistics_mitigation?.reroute_triggered === false
+                          ? "Shelter Enforced"
+                          : "Course Maintained"}
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-700 font-sans leading-relaxed">
-                    {typeof simResult.logistics_mitigation === "string"
-                      ? simResult.logistics_mitigation
-                      : simResult.logistics_mitigation
-                          ?.strategic_recommendation ||
-                        simResult.logistics_mitigation?.recommendation ||
-                        "No action recommendations specified by the Logistics Agent."}
+                  <div className="prose prose-sm prose-slate max-w-none text-[11px] leading-relaxed font-sans">
+                    <ReactMarkdown>
+                      {simResult.logistics_mitigation?.strategic_recommendation ||
+                        "Current operational profiles remain within safe parameters. No deviations required."}
+                    </ReactMarkdown>
                   </div>
                 </div>
 
