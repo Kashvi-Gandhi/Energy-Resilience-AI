@@ -1,7 +1,3 @@
 {
-  "/routes/page": "app/routes/page.js",
-  "/threats/page": "app/threats/page.js",
-  "/page": "app/page.js",
-  "/vessels/page": "app/vessels/page.js",
-  "/simulation/page": "app/simulation/page.js"
+  "/page": "app/page.js"
 }
