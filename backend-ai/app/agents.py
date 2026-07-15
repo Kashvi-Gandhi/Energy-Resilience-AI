@@ -83,8 +83,8 @@ def run_scout_agent(intel_context: list, user_scenario: str = "") -> dict:
         return {"risk_score": 5, "primary_threat": "Operational baseline quiet.", "target_route_id": None}
 
 
-def run_logistics_agent(scout_analysis: dict) -> dict:
-    """Agent 2: Modifies physical route plans if threat boundaries are breached."""
+def run_logistics_agent(scout_analysis: dict, premium_surge: int = 25) -> dict:
+    """Agent 2: Modifies physical route plans if threat boundaries are breached, balancing safety against insurance costs."""
     risk_score = scout_analysis.get("risk_score", 0)
     route_id = scout_analysis.get("target_route_id")
     
@@ -104,6 +104,7 @@ def run_logistics_agent(scout_analysis: dict) -> dict:
             
         affected_names = [v["name"] for v in vessels]
         
+        # We inject the premium surge variable dynamically into the AI prompt rules
         prompt = f"""
         You are a Supply Chain Optimization Expert (The Logistics Architect Agent).
         A major shipping crisis has breached parameters.
@@ -113,9 +114,15 @@ def run_logistics_agent(scout_analysis: dict) -> dict:
         - Threat Profile: {scout_analysis.get('primary_threat')}
         - Fleet Target Units: {', '.join(affected_names) if affected_names else "En Route Tankers"}
         
+        FINANCIAL VARIABLE:
+        - Simulated Operational Insurance Premium Surge: +{premium_surge}%
+        
+        LOGISTICAL COST-BENEFIT RULES:
+        - If the Insurance Premium Surge is high (>= 70%), long-distance detours are economically devastating. You should advise holding positions at safe nearby harbors, assembling tactical military-escorted convoys, or staying anchored, rather than initiating an expensive 10-day bypass.
+        - If the Insurance Premium Surge is lower (< 70%), immediately recommend changing active route coordinates to long safer bypasses, even if it adds exactly 10 days to the journey duration.
+        
         Generate an Emergency Strategic Response Advisory for the Indian Ministry of Petroleum.
-        State that the active routes coordinates must be altered immediately, adding exactly 10 days to the journey duration.
-        Provide a text summary explaining the disruption and fallback destination ports.
+        Formulate your mitigation steps by explicitly referencing the trade-offs between the Risk Level ({risk_score}/100) and the Surging Insurance Costs (+{premium_surge}%). Explain the disruption, transit time impact, and fallback destination ports.
         """
         
         try:
@@ -125,10 +132,17 @@ def run_logistics_agent(scout_analysis: dict) -> dict:
             )
             recommendation = ai_resp.text.strip()
         except Exception as e:
-            recommendation = f"Alternative transit layout required immediately. Journey time increased by +10 days."
+            recommendation = f"Alternative transit layout required immediately. Journey time increased due to risk assessment and premium surge of +{premium_surge}%."
+        
+        # Dynamically change the structural variable returned to the UI 
+        # based on the slider cost trade-offs
+        reroute_triggered = True
+        if premium_surge >= 70 and risk_score < 90:
+            # If premiums are huge and it's not absolute extreme hazard, hold position (not triggered detour)
+            reroute_triggered = False
             
         action_plan = {
-            "reroute_triggered": True,
+            "reroute_triggered": reroute_triggered,
             "affected_vessels": affected_names,
             "strategic_recommendation": recommendation
         }
