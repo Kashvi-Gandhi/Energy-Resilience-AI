@@ -243,3 +243,7 @@ def simulate_crisis_event(payload: CrisisRequest):
     except Exception as e:
         print(f"❌ Critical Failure inside simulation endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Simulation Pipeline Error: {str(e)}")
+
+
+
+# does not work without internet. database connectivity works on internet
