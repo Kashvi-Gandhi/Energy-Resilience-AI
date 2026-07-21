@@ -152,33 +152,28 @@ export default function OperationalMetrics({
 
   // ─────────────────────────────────────────────────────────────────────────────
   // METRIC 3: HIGH RISK AREAS
-  // Derived by extracting unique geographic region/location strings from threats[]
-  // Falls back to a proportional estimate if location fields are unpopulated
+  // Derived by extracting unique geographic region strings from threats[]
+  // Your active_threats table always has a `region` column
   // ─────────────────────────────────────────────────────────────────────────────
   const uniqueRiskLocations = new Set(
     (threats || [])
-      .map((t: any) => t.location || t.region || t.area)
-      .filter(Boolean) // Remove null/undefined/empty entries
+      .map((t: any) => t.region || t.location || t.area)
+      .filter(Boolean)
   );
-  // Use Set size if populated; otherwise estimate from threats count to avoid zero display
-  const totalRiskAreas = uniqueRiskLocations.size > 0 
-    ? uniqueRiskLocations.size 
-    : totalThreatsCount > 0 
-      ? Math.ceil(totalThreatsCount / 3) 
-      : 0;
+  const totalRiskAreas = uniqueRiskLocations.size > 0
+    ? uniqueRiskLocations.size
+    : totalThreatsCount;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // METRIC 4: INCIDENTS (24H)
-  // Derived by filtering threats where severity === "high" OR status === "active"
-  // Falls back to total threats count if severity/status fields are not populated
+  // Count threats with severity HIGH or status Active (both from active_threats schema)
   // ─────────────────────────────────────────────────────────────────────────────
-  const incidentMatches = (threats || []).filter((t: any) => 
-    t.severity?.toLowerCase() === "high" || 
+  const incidentMatches = (threats || []).filter((t: any) =>
+    t.severity?.toUpperCase() === "HIGH" ||
     t.status?.toLowerCase() === "active"
   );
-  // If backend doesn't populate severity/status, fall back to full threats count
-  const totalIncidents = incidentMatches.length > 0 
-    ? incidentMatches.length 
+  const totalIncidents = incidentMatches.length > 0
+    ? incidentMatches.length
     : totalThreatsCount;
 
   // ─────────────────────────────────────────────────────────────────────────────

@@ -79,16 +79,33 @@ export default function InteractiveMap({
    * so they follow the map when panning/zooming — unlike screen-overlay divs.
    */
   useEffect(() => {
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
     async function fetchPorts() {
+      let loaded = false;
       try {
         const res = await fetch("http://127.0.0.1:8000/api/ports");
         if (res.ok) {
           const data = await res.json();
-          setLivePorts(Array.isArray(data) ? data : data.data || []);
+          const clean = Array.isArray(data) ? data : [];
+          if (clean.length > 0) { setLivePorts(clean); loaded = true; }
         }
       } catch (e) {
-        console.error("❌ Port fetch failed:", e);
-        setLivePorts([]);
+        console.warn("⚠️ Backend ports unreachable, using Supabase direct.");
+      }
+
+      if (!loaded && SUPABASE_URL && SUPABASE_KEY) {
+        try {
+          const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/ports?select=id,name,country,latitude,longitude,throughput_capacity_mtpa`,
+            { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            setLivePorts(Array.isArray(data) ? data : []);
+          }
+        } catch (e) { console.error("❌ Supabase ports fallback failed:", e); }
       }
     }
     fetchPorts();

@@ -240,18 +240,38 @@ export default function PortsLedgerDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
     async function fetchPortTelemetry() {
+      let loaded = false;
       try {
         const response = await fetch("http://127.0.0.1:8000/api/ports");
         if (response.ok) {
           const data = await response.json();
-          setPorts(data);
+          const clean = Array.isArray(data) ? data : [];
+          if (clean.length > 0) { setPorts(clean); loaded = true; }
         }
       } catch (err) {
-        console.error("Global node port synchronization fault:", err);
-      } finally {
-        setLoading(false);
+        console.warn("⚠️ Backend ports unreachable, using Supabase direct.");
       }
+
+      if (!loaded && SUPABASE_URL && SUPABASE_KEY) {
+        try {
+          const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/ports?select=id,name,country,latitude,longitude,throughput_capacity_mtpa,crude_stream_compatibility&order=name.asc`,
+            { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            setPorts(Array.isArray(data) ? data : []);
+          }
+        } catch (e) {
+          console.error("❌ Supabase ports fallback failed:", e);
+        }
+      }
+
+      setLoading(false);
     }
     fetchPortTelemetry();
   }, []);

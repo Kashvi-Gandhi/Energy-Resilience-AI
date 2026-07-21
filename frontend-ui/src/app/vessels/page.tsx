@@ -10,16 +10,36 @@ export default function VesselsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
     async function fetchFleet() {
+      let loaded = false;
       try {
         const res = await fetch("http://127.0.0.1:8000/api/vessels");
-        const data = await res.json();
-        setFleet(data);
+        if (res.ok) {
+          const data = await res.json();
+          const clean = Array.isArray(data) ? data : [];
+          if (clean.length > 0) { setFleet(clean); loaded = true; }
+        }
       } catch (err) {
-        console.error("❌ Failed to stream live fleet mapping:", err);
-      } finally {
-        setLoading(false);
+        console.warn("⚠️ Backend vessels unreachable, using Supabase direct.");
       }
+
+      if (!loaded && SUPABASE_URL && SUPABASE_KEY) {
+        try {
+          const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/vessels?select=*`,
+            { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            setFleet(Array.isArray(data) ? data : []);
+          }
+        } catch (e) { console.error("❌ Supabase vessels fallback failed:", e); }
+      }
+
+      setLoading(false);
     }
     fetchFleet();
   }, []);

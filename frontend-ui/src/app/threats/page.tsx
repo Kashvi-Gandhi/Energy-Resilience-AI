@@ -141,22 +141,42 @@ export default function GeopoliticalThreatRegistry() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
     async function fetchThreatIntel() {
+      let loaded = false;
       try {
         const response = await fetch("http://127.0.0.1:8000/api/threats");
         if (response.ok) {
           const data = await response.json();
           const cleanData = Array.isArray(data) ? data : [];
-          setThreats(cleanData);
           if (cleanData.length > 0) {
+            setThreats(cleanData);
             setSelectedThreat(cleanData[0]);
+            loaded = true;
           }
         }
       } catch (err) {
-        console.error("Critical failure sync with threat registry matrix:", err);
-      } finally {
-        setLoading(false);
+        console.warn("⚠️ Backend threats unreachable, using Supabase direct.");
       }
+
+      if (!loaded && SUPABASE_URL && SUPABASE_KEY) {
+        try {
+          const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/active_threats?select=*&order=created_at.desc`,
+            { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const cleanData = Array.isArray(data) ? data : [];
+            setThreats(cleanData);
+            if (cleanData.length > 0) setSelectedThreat(cleanData[0]);
+          }
+        } catch (e) { console.error("❌ Supabase threats fallback failed:", e); }
+      }
+
+      setLoading(false);
     }
     fetchThreatIntel();
   }, []);

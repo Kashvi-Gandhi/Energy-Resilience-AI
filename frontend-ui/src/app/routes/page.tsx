@@ -9,16 +9,36 @@ export default function RoutesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
     async function fetchRoutes() {
+      let loaded = false;
       try {
         const res = await fetch("http://127.0.0.1:8000/api/routes");
-        const data = await res.json();
-        setRoutes(data);
+        if (res.ok) {
+          const data = await res.json();
+          const clean = Array.isArray(data) ? data : [];
+          if (clean.length > 0) { setRoutes(clean); loaded = true; }
+        }
       } catch (err) {
-        console.error("❌ Corridor connection break:", err);
-      } finally {
-        setLoading(false);
+        console.warn("⚠️ Backend routes unreachable, using Supabase direct.");
       }
+
+      if (!loaded && SUPABASE_URL && SUPABASE_KEY) {
+        try {
+          const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/supply_routes?select=id,route_name,risk_score`,
+            { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            setRoutes(Array.isArray(data) ? data : []);
+          }
+        } catch (e) { console.error("❌ Supabase routes fallback failed:", e); }
+      }
+
+      setLoading(false);
     }
     fetchRoutes();
   }, []);

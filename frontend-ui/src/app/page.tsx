@@ -640,20 +640,49 @@ export default function GlobalDashboard() {
   // }, [simulationData]);
 
   useEffect(() => {
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    async function fetchFromSupabaseDirect() {
+      if (!SUPABASE_URL || !SUPABASE_KEY) return;
+      const headers = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` };
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vessels?select=*`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) setVesselsData(data);
+        }
+      } catch (e) { /* silent */ }
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/active_threats?select=*`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) setThreatsData(data);
+        }
+      } catch (e) { /* silent */ }
+    }
+
     async function pullDatabaseTelemetry() {
+      let vesselsLoaded = false;
+      let threatsLoaded = false;
+
+      // Try backend first
       try {
         const res = await fetch("http://127.0.0.1:8000/api/vessels");
         if (res.ok) {
           const payload = await res.json();
-          // Checks both flat arrays and response envelope variants
           const cleanArray = Array.isArray(payload)
             ? payload
             : payload.data || payload.vessels || [];
-          setVesselsData(cleanArray);
+          if (cleanArray.length > 0) {
+            setVesselsData(cleanArray);
+            vesselsLoaded = true;
+          }
         }
       } catch (err) {
-        console.error("❌ Database sync failed for vessels:", err);
-        setVesselsData([]);
+        console.warn("⚠️ Backend vessels unreachable, falling back to Supabase direct.");
       }
 
       try {
@@ -663,11 +692,18 @@ export default function GlobalDashboard() {
           const cleanArray = Array.isArray(payload)
             ? payload
             : payload.data || payload.threats || [];
-          setThreatsData(cleanArray);
+          if (cleanArray.length > 0) {
+            setThreatsData(cleanArray);
+            threatsLoaded = true;
+          }
         }
       } catch (err) {
-        console.error("❌ Database sync failed for threats:", err);
-        setThreatsData([]);
+        console.warn("⚠️ Backend threats unreachable, falling back to Supabase direct.");
+      }
+
+      // If either stream failed, query Supabase directly
+      if (!vesselsLoaded || !threatsLoaded) {
+        await fetchFromSupabaseDirect();
       }
     }
 

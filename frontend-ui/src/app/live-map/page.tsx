@@ -37,23 +37,49 @@ export default function LiveMapPage() {
    * the "Active Screen Targets" section in the right panel.
    */
   useEffect(() => {
-    async function fetchCounts() {
-      try {
-        const [portsRes, vesselsRes] = await Promise.all([
-          fetch("http://127.0.0.1:8000/api/ports"),
-          fetch("http://127.0.0.1:8000/api/vessels"),
-        ]);
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const sbHeaders = SUPABASE_URL && SUPABASE_KEY
+      ? { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+      : null;
 
-        if (portsRes.ok) {
-          const ports = await portsRes.json();
-          setPortCount(Array.isArray(ports) ? ports.length : 0);
+    async function fetchCounts() {
+      // --- Ports ---
+      let portsLoaded = false;
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/ports");
+        if (res.ok) {
+          const ports = await res.json();
+          if (Array.isArray(ports) && ports.length > 0) {
+            setPortCount(ports.length);
+            portsLoaded = true;
+          }
         }
-        if (vesselsRes.ok) {
-          const vessels = await vesselsRes.json();
-          setVesselCount(Array.isArray(vessels) ? vessels.length : 0);
+      } catch (_) {}
+      if (!portsLoaded && sbHeaders) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/ports?select=id`, { headers: sbHeaders });
+          if (res.ok) { const d = await res.json(); setPortCount(Array.isArray(d) ? d.length : 0); }
+        } catch (_) {}
+      }
+
+      // --- Vessels ---
+      let vesselsLoaded = false;
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/vessels");
+        if (res.ok) {
+          const vessels = await res.json();
+          if (Array.isArray(vessels) && vessels.length > 0) {
+            setVesselCount(vessels.length);
+            vesselsLoaded = true;
+          }
         }
-      } catch (err) {
-        console.error("❌ Failed to fetch asset counts:", err);
+      } catch (_) {}
+      if (!vesselsLoaded && sbHeaders) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/vessels?select=id`, { headers: sbHeaders });
+          if (res.ok) { const d = await res.json(); setVesselCount(Array.isArray(d) ? d.length : 0); }
+        } catch (_) {}
       }
     }
     fetchCounts();
