@@ -207,9 +207,11 @@ def simulate_crisis_event(payload: CrisisRequest):
                 raw_scout_assessment.get("risk_analysis") or 
                 str(raw_scout_assessment)
             )
+            scout_data["primary_threat"] = raw_scout_assessment.get("primary_threat", scenario)
         else:
             scout_data["risk_score"] = 80  
             scout_data["assessment"] = str(raw_scout_assessment)
+            scout_data["primary_threat"] = scenario
 
         # Process Logistics Data Structure Safely
         logistics_data = {}
@@ -231,6 +233,45 @@ def simulate_crisis_event(payload: CrisisRequest):
         print(f"📊 Processed Scout Risk Score: {scout_data['risk_score']}/100")
         print(f"⚓ Processed Logistics Action Triggered: {logistics_data['reroute_triggered']}")
         
+        # --- 💾 SUPABASE HISTORY LOGGING WRITEBACK ---
+        try:
+            # Determine security/action state label
+            if logistics_data["reroute_triggered"]:
+                action_label = "Rerouted"
+            elif scout_data["risk_score"] >= 70:
+                action_label = "Sheltered"
+            else:
+                action_label = "Monitored"
+
+            # Parse primary threat title & target sector
+            scenario_title = scout_data.get("primary_threat", scenario[:60]).upper()
+            if not scenario_title.endswith("DOSSIER"):
+                scenario_title = f"{scenario_title} INTERCEPT DOCKET"
+
+            target_sector = "Strait of Hormuz Corridor"
+            if isinstance(raw_scout_assessment, dict) and raw_scout_assessment.get("target_route_id"):
+                target_sector = f"Route {str(raw_scout_assessment.get('target_route_id'))[:8]}"
+
+            history_payload = {
+                "scenario_title": scenario_title,
+                "sector": target_sector,
+                "risk_score": scout_data["risk_score"],
+                "premium_surge": premium_surge,
+                "action_taken": action_label,
+                "scout_analysis": scout_data["assessment"],
+                "logistics_plan": logistics_data["strategic_recommendation"]
+            }
+            
+            # Post directly to Supabase simulation_logs table
+            requests.post(
+                f"{SUPABASE_URL}/rest/v1/simulation_logs", 
+                headers=API_HEADERS, 
+                json=history_payload
+            )
+            print("💾 Simulation execution logged to Supabase history registry.")
+        except Exception as log_err:
+            print(f"⚠️ History logging non-critical warning: {log_err}")
+
         # 4. Return formatted combined operational intelligence back to client
         return {
             "status": "success",
@@ -243,7 +284,6 @@ def simulate_crisis_event(payload: CrisisRequest):
     except Exception as e:
         print(f"❌ Critical Failure inside simulation endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Simulation Pipeline Error: {str(e)}")
-
 
 
 # does not work without internet. database connectivity works on internet. 
