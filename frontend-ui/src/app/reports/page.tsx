@@ -14,6 +14,10 @@ import {
   ChevronDown,
   Calendar,
   MapPin,
+  RefreshCw,
+  Download,
+  FileJson,
+  Printer,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -51,7 +55,6 @@ function deriveFileSize(log: SimulationLog): string {
     (log.scout_analysis?.length ?? 0) +
     (log.logistics_plan?.length ?? 0) +
     (log.scenario_title?.length ?? 0);
-  // Keep it between ~1.2 MB and ~24 MB
   const mb = ((base % 230) / 10 + 1.2).toFixed(1);
   return `${mb} MB`;
 }
@@ -78,7 +81,7 @@ function badgeConfig(score: number): {
 }
 
 // ---------------------------------------------------------------------------
-// Mock fallback data (shown when the table is empty / unreachable)
+// Mock Fallback Data
 // ---------------------------------------------------------------------------
 
 const MOCK_LOGS: SimulationLog[] = [
@@ -106,18 +109,6 @@ const MOCK_LOGS: SimulationLog[] = [
       "## Logistics Mitigation Plan\n\n### Recommended Action: Holding Pattern\n\n1. **Anchor at Port Said** — Vessels advised to hold at outer anchorage pending signal resolution.\n2. **Alternative: Bab-el-Mandeb → Cape of Good Hope** — Longer transit, but fully clear of interference.\n\n**Estimated Delay**: +4 days\n\n**Insurance Premium Impact**: +34%",
     created_at: "2026-06-25T09:10:00Z",
   },
-  {
-    id: "mock-3",
-    scenario_title: "Malacca Strait Piracy Alert",
-    sector: "Southeast Asia Passage",
-    risk_score: 41,
-    action_taken: "Escorted",
-    scout_analysis:
-      "## Scout Risk Assessment\n\nArmed boarding attempt reported on a VLCC transiting the Malacca Strait at 01°20'N, 103°55'E.\n\n**Primary Threat**: Piracy / armed robbery\n\n**Escalation Probability**: Low (20%)\n\n**Supply Chain Exposure**: Single vessel; regional risk elevated.",
-    logistics_plan:
-      "## Logistics Mitigation Plan\n\n### Recommended Action: Naval Escort Protocol\n\n1. **Request Singapore MPA Escort** — Coordinate with regional maritime authorities.\n2. **Speed Adjustment** — Increase transit speed through the strait to reduce exposure window.\n\n**Estimated Delay**: +1 day\n\n**Insurance Premium Impact**: +12%",
-    created_at: "2026-06-20T22:45:00Z",
-  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -132,7 +123,6 @@ interface DossierModalProps {
 function DossierModal({ log, onClose }: DossierModalProps) {
   const badge = badgeConfig(log.risk_score);
 
-  // Close on backdrop click
   const handleBackdrop = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (e.target === e.currentTarget) onClose();
@@ -140,7 +130,6 @@ function DossierModal({ log, onClose }: DossierModalProps) {
     [onClose]
   );
 
-  // Close on Escape key
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -148,6 +137,10 @@ function DossierModal({ log, onClose }: DossierModalProps) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  const cleanTitle = log.scenario_title
+    .replace(/INTERCEPT DOCKET/gi, "")
+    .trim();
 
   return (
     <div
@@ -176,7 +169,6 @@ function DossierModal({ log, onClose }: DossierModalProps) {
 
         {/* Scrollable Body */}
         <div className="overflow-y-auto flex-1 p-6 space-y-5">
-          {/* Title + Meta */}
           <div className="space-y-2">
             <span
               className={`text-[9px] font-extrabold px-2.5 py-0.5 border rounded-md font-mono inline-block tracking-widest ${badge.className}`}
@@ -184,7 +176,7 @@ function DossierModal({ log, onClose }: DossierModalProps) {
               {badge.label}
             </span>
             <h3 className="text-sm font-black text-slate-900 tracking-tight uppercase leading-snug">
-              {log.scenario_title.toUpperCase()} INTERCEPT DOCKET
+              {cleanTitle} INTERCEPT DOCKET
             </h3>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-mono text-slate-400">
               <span className="flex items-center gap-1">
@@ -225,13 +217,6 @@ function DossierModal({ log, onClose }: DossierModalProps) {
               </div>
             </div>
           )}
-
-          {/* No content fallback */}
-          {!log.scout_analysis && !log.logistics_plan && (
-            <div className="text-xs font-mono text-slate-400 text-center py-6 uppercase tracking-wider">
-              No analyst field logs annotated for this dossier.
-            </div>
-          )}
         </div>
 
         {/* Footer */}
@@ -263,70 +248,60 @@ export default function ReportsPage() {
   const [selectedLog, setSelectedLog] = useState<SimulationLog | null>(null);
   const [usingFallback, setUsingFallback] = useState(false);
 
-  // -------------------------------------------------------------------------
-  // Fetch simulation_logs from Supabase REST API on mount
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    async function fetchSimulationLogs() {
-      setLoading(true);
-      setError(null);
+  const fetchSimulationLogs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-      if (!supabaseUrl || !supabaseKey) {
-        console.warn(
-          "⚠️ Supabase env vars not set — falling back to mock data."
-        );
-        setLogs(MOCK_LOGS);
-        setUsingFallback(true);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = await fetch(
-          `${supabaseUrl}/rest/v1/simulation_logs?select=*&order=created_at.desc`,
-          {
-            headers: {
-              apikey: supabaseKey,
-              Authorization: `Bearer ${supabaseKey}`,
-            },
-          }
-        );
-
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-
-        const data: SimulationLog[] = await res.json();
-
-        if (Array.isArray(data) && data.length > 0) {
-          setLogs(data);
-          setUsingFallback(false);
-        } else {
-          // Table exists but is empty — show mock data so the screen never looks blank
-          setLogs(MOCK_LOGS);
-          setUsingFallback(true);
-        }
-      } catch (err) {
-        console.error("❌ simulation_logs fetch failure:", err);
-        setError(
-          err instanceof Error ? err.message : "Unknown network error"
-        );
-        setLogs(MOCK_LOGS);
-        setUsingFallback(true);
-      } finally {
-        setLoading(false);
-      }
+    if (!supabaseUrl || !supabaseKey) {
+      console.warn("⚠️ Supabase credentials missing — showing mock data.");
+      setLogs(MOCK_LOGS);
+      setUsingFallback(true);
+      setLoading(false);
+      return;
     }
 
-    fetchSimulationLogs();
+    try {
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/simulation_logs?select=*&order=created_at.desc`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+          cache: "no-store",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+
+      const data: SimulationLog[] = await res.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        setLogs(data);
+        setUsingFallback(false);
+      } else {
+        setLogs(MOCK_LOGS);
+        setUsingFallback(true);
+      }
+    } catch (err) {
+      console.error("❌ simulation_logs fetch failure:", err);
+      setError(err instanceof Error ? err.message : "Unknown network error");
+      setLogs(MOCK_LOGS);
+      setUsingFallback(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // -------------------------------------------------------------------------
-  // Derived / filtered list
-  // -------------------------------------------------------------------------
+  useEffect(() => {
+    fetchSimulationLogs();
+  }, [fetchSimulationLogs]);
+
   const filteredLogs = logs.filter((log) => {
     const q = search.toLowerCase();
     return (
@@ -340,28 +315,31 @@ export default function ReportsPage() {
     (l) => l.risk_score >= 50 && l.risk_score < 80
   ).length;
 
-  // -------------------------------------------------------------------------
-  // Render
-  // -------------------------------------------------------------------------
   return (
     <div className="flex h-screen w-screen bg-[#F8FAFC] overflow-hidden antialiased text-slate-900 font-sans">
       <DashboardSidebar currentRoute="Reports" />
 
       <div className="flex-1 h-full flex flex-col p-4 md:p-6 space-y-5 overflow-y-auto">
-
-        {/* ── Header ─────────────────────────────────────────────────────── */}
+        {/* Header */}
         <div className="border-b border-slate-200 pb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between shrink-0">
           <div>
             <h1 className="text-base md:text-lg font-black tracking-tight text-slate-900 uppercase font-mono">
               Intelligence Export &amp; Report Registry
             </h1>
             <p className="text-xs text-slate-500 font-medium">
-              Real-time simulation dossiers compiled from geopolitical threat
-              arrays
+              Real-time simulation dossiers compiled from geopolitical threat arrays
             </p>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => fetchSimulationLogs()}
+              disabled={loading}
+              className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded-xl transition-colors shadow-sm"
+              title="Refresh Registry"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            </button>
             <div className="relative flex-1 sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
               <input
@@ -375,23 +353,11 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* ── Summary Cards ──────────────────────────────────────────────── */}
+        {/* Summary Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
-          <SummaryCard
-            label="Total Dossiers"
-            value={String(logs.length)}
-            color="slate"
-          />
-          <SummaryCard
-            label="SECRET Rated"
-            value={String(secretCount)}
-            color="rose"
-          />
-          <SummaryCard
-            label="Confidential"
-            value={String(confidentialCount)}
-            color="sky"
-          />
+          <SummaryCard label="Total Dossiers" value={String(logs.length)} color="slate" />
+          <SummaryCard label="SECRET Rated" value={String(secretCount)} color="rose" />
+          <SummaryCard label="Confidential" value={String(confidentialCount)} color="sky" />
           <SummaryCard
             label="Data Feed"
             value={loading ? "Syncing…" : usingFallback ? "Demo Mode" : "Live"}
@@ -399,19 +365,19 @@ export default function ReportsPage() {
           />
         </div>
 
-        {/* ── Fallback / Error Banner ─────────────────────────────────────── */}
+        {/* Fallback Banner */}
         {usingFallback && !loading && (
           <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 font-mono shrink-0">
             <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0 text-amber-500" />
             <span>
               {error
                 ? `Live feed unavailable (${error}). Displaying mock demonstration dossiers.`
-                : "No simulation logs found in the database. Displaying sample dossiers — run a simulation to populate live data."}
+                : "No live records found in database. Displaying demonstration records."}
             </span>
           </div>
         )}
 
-        {/* ── Ledger Table ───────────────────────────────────────────────── */}
+        {/* Ledger Table */}
         <div className="border border-slate-200 bg-white rounded-xl flex-1 flex flex-col overflow-hidden shadow-sm min-h-0">
           {loading ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2 p-12">
@@ -425,18 +391,10 @@ export default function ReportsPage() {
               <table className="min-w-full text-left border-collapse">
                 <thead className="sticky top-0 z-10">
                   <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/90 backdrop-blur-sm font-mono">
-                    <th className="px-4 md:px-6 py-3">
-                      Document Identification / Origin
-                    </th>
-                    <th className="px-4 md:px-6 py-3 hidden md:table-cell">
-                      File Size
-                    </th>
-                    <th className="px-4 md:px-6 py-3 text-center">
-                      Security Rating
-                    </th>
-                    <th className="px-4 md:px-6 py-3 text-right">
-                      Action Vectors
-                    </th>
+                    <th className="px-4 md:px-6 py-3">Document Identification / Origin</th>
+                    <th className="px-4 md:px-6 py-3 hidden md:table-cell">File Size</th>
+                    <th className="px-4 md:px-6 py-3 text-center">Security Rating</th>
+                    <th className="px-4 md:px-6 py-3 text-right">Action Vectors</th>
                   </tr>
                 </thead>
 
@@ -483,19 +441,15 @@ export default function ReportsPage() {
               </span>
             </div>
             <div className="text-slate-500 text-center sm:text-right">
-              Dossiers dynamically mapped from core geopolitical vector
-              telemetry.
+              Dossiers dynamically mapped from core geopolitical vector telemetry.
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Dossier Modal ──────────────────────────────────────────────────── */}
+      {/* Dossier Modal */}
       {selectedLog && (
-        <DossierModal
-          log={selectedLog}
-          onClose={() => setSelectedLog(null)}
-        />
+        <DossierModal log={selectedLog} onClose={() => setSelectedLog(null)} />
       )}
     </div>
   );
@@ -515,33 +469,27 @@ const colorMap: Record<
   SummaryCardProps["color"],
   { bg: string; border: string; text: string; icon: string }
 > = {
-  slate:   { bg: "bg-slate-50",   border: "border-slate-100",   text: "text-slate-700",   icon: "text-slate-400"  },
-  rose:    { bg: "bg-rose-50",    border: "border-rose-100",    text: "text-rose-700",    icon: "text-rose-400"   },
-  sky:     { bg: "bg-sky-50",     border: "border-sky-100",     text: "text-sky-700",     icon: "text-sky-400"    },
-  emerald: { bg: "bg-emerald-50", border: "border-emerald-100", text: "text-emerald-700", icon: "text-emerald-400"},
-  amber:   { bg: "bg-amber-50",   border: "border-amber-100",   text: "text-amber-700",   icon: "text-amber-400"  },
+  slate: { bg: "bg-slate-50", border: "border-slate-100", text: "text-slate-700", icon: "text-slate-400" },
+  rose: { bg: "bg-rose-50", border: "border-rose-100", text: "text-rose-700", icon: "text-rose-400" },
+  sky: { bg: "bg-sky-50", border: "border-sky-100", text: "text-sky-700", icon: "text-sky-400" },
+  emerald: { bg: "bg-emerald-50", border: "border-emerald-100", text: "text-emerald-700", icon: "text-emerald-400" },
+  amber: { bg: "bg-amber-50", border: "border-amber-100", text: "text-amber-700", icon: "text-amber-400" },
 };
 
 function SummaryCard({ label, value, color }: SummaryCardProps) {
   const c = colorMap[color];
   return (
-    <div
-      className={`border ${c.border} p-3.5 ${c.bg} rounded-xl flex items-center justify-between shadow-sm`}
-    >
+    <div className={`border ${c.border} p-3.5 ${c.bg} rounded-xl flex items-center justify-between shadow-sm`}>
       <div>
         <span className="text-[10px] font-bold text-slate-400 font-mono uppercase block leading-tight">
           {label}
         </span>
-        <span className={`text-base font-bold font-mono ${c.text}`}>
-          {value}
-        </span>
+        <span className={`text-base font-bold font-mono ${c.text}`}>{value}</span>
       </div>
       <FileCheck className={`h-4 w-4 ${c.icon}`} />
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
 
 interface LogRowProps {
   log: SimulationLog;
@@ -550,14 +498,16 @@ interface LogRowProps {
 }
 
 function LogRow({ log, badge, onOpenDossier }: LogRowProps) {
-  const title = `${log.scenario_title.toUpperCase()} INTERCEPT DOCKET`;
+  const cleanTitle = log.scenario_title
+    .replace(/INTERCEPT DOCKET/gi, "")
+    .trim();
+  const title = `${cleanTitle.toUpperCase()} INTERCEPT DOCKET`;
 
   return (
     <tr
       className="hover:bg-slate-50/70 transition-colors cursor-pointer group"
       onClick={onOpenDossier}
     >
-      {/* Document Identification / Origin */}
       <td className="px-4 md:px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 hidden sm:block shrink-0">
@@ -582,12 +532,10 @@ function LogRow({ log, badge, onOpenDossier }: LogRowProps) {
         </div>
       </td>
 
-      {/* File Size */}
       <td className="px-4 md:px-6 py-4 font-mono text-slate-500 text-[11px] hidden md:table-cell whitespace-nowrap">
         {deriveFileSize(log)}
       </td>
 
-      {/* Security Rating */}
       <td className="px-4 md:px-6 py-4 text-center">
         <span
           className={`text-[9px] font-extrabold px-2.5 py-0.5 border rounded-md font-mono inline-block tracking-widest ${badge.className}`}
@@ -596,7 +544,6 @@ function LogRow({ log, badge, onOpenDossier }: LogRowProps) {
         </span>
       </td>
 
-      {/* Action Vectors */}
       <td className="px-4 md:px-6 py-4 text-right">
         <button
           onClick={(e) => {

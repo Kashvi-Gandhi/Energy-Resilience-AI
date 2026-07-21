@@ -632,9 +632,18 @@ export default function SimulationPage() {
             </div>
           </div>
 
-          {/* RIGHT COLUMNS VIEWPORT HUB: DYNAMIC SIMULATION MATRIX LOG */}
-          {/* DYNAMIC LOG STATE INTERFACES CONTAINER */}
-          <div className="flex-1 p-4 overflow-y-auto font-mono text-xs space-y-4">
+          {/* RIGHT COLUMN: SIMULATION MATRIX LOG CARD */}
+          <div className="border border-slate-200 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden min-h-[400px] lg:min-h-0">
+            {/* Card Header */}
+            <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2 shrink-0">
+              <Activity className="h-4 w-4 text-slate-500" />
+              <span className="text-[10px] font-bold text-slate-400 font-mono uppercase tracking-wider">
+                Simulation Matrix Log
+              </span>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 p-4 overflow-y-auto font-mono text-xs space-y-4">
             {loading ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2 p-6 text-center">
                 <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mb-1" />
@@ -730,6 +739,18 @@ export default function SimulationPage() {
                 </p>
               </div>
             )}
+            </div>
+
+            {/* Card Footer */}
+            <div className="bg-slate-900 text-[10px] text-slate-400 font-mono p-3 px-4 border-t border-slate-800 shrink-0 flex items-center justify-between">
+              <span>CRISIS INTERACTION MATRIX</span>
+              <div className="flex items-center gap-1.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-slate-500">
+                  {loading ? "RUNNING" : simResult ? "COMPLETE" : "READY"}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

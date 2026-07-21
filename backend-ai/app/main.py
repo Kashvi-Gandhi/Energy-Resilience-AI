@@ -1,14 +1,15 @@
 import os
+import requests
+from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 # Absolute/Relative imports depending on execution context
-from app.database import query_vector_news 
-# 🛠️ HELPER ASSUMPTION: Importing your initialized supabase client from your database file
-# If you configure it elsewhere, adjust this import statement to match.
-from app.database import supabase 
+from app.database import query_vector_news
+from app.database import supabase
+from app.database import API_HEADERS, SUPABASE_URL  # needed for simulation_logs writeback
 from app.agents import run_scout_agent, run_logistics_agent
 
 load_dotenv()
@@ -193,12 +194,10 @@ def simulate_crisis_event(payload: CrisisRequest):
         # 2. Execute Agent 1 (Assessment)
         raw_scout_assessment = run_scout_agent(intel_context, user_scenario=scenario)
         
-        # 3. Execute Agent 2 (Mitigation Planning) with the premium surge variable included
+        # 3. Execute Agent 2 (Mitigation Planning)
         raw_logistics_plan = run_logistics_agent(raw_scout_assessment, premium_surge=premium_surge)
         
         # --- 🛠️ ROBUST PARSING ENGINE LOGIC ---
-        
-        # Process Scout Data Structure Safely
         scout_data = {}
         if isinstance(raw_scout_assessment, dict):
             scout_data["risk_score"] = raw_scout_assessment.get("risk_score", 75)
@@ -213,13 +212,10 @@ def simulate_crisis_event(payload: CrisisRequest):
             scout_data["assessment"] = str(raw_scout_assessment)
             scout_data["primary_threat"] = scenario
 
-        # Process Logistics Data Structure Safely
         logistics_data = {}
         if isinstance(raw_logistics_plan, dict):
-            # Use .get() with an explicit default value instead of 'or True'
             trigger_status = raw_logistics_plan.get("reroute_triggered", True)
             logistics_data["reroute_triggered"] = bool(trigger_status)
-            
             logistics_data["strategic_recommendation"] = (
                 raw_logistics_plan.get("strategic_recommendation") or
                 raw_logistics_plan.get("recommendation") or 
@@ -232,45 +228,48 @@ def simulate_crisis_event(payload: CrisisRequest):
                 
         print(f"📊 Processed Scout Risk Score: {scout_data['risk_score']}/100")
         print(f"⚓ Processed Logistics Action Triggered: {logistics_data['reroute_triggered']}")
-        
-        # --- 💾 SUPABASE HISTORY LOGGING WRITEBACK ---
+
+        # --- 💾 SUPABASE LOGS WRITEBACK WITH ADVANCED DIAGNOSTICS ---
         try:
-            # Determine security/action state label
-            if logistics_data["reroute_triggered"]:
-                action_label = "Rerouted"
-            elif scout_data["risk_score"] >= 70:
-                action_label = "Sheltered"
-            else:
-                action_label = "Monitored"
-
-            # Parse primary threat title & target sector
-            scenario_title = scout_data.get("primary_threat", scenario[:60]).upper()
-            if not scenario_title.endswith("DOSSIER"):
-                scenario_title = f"{scenario_title} INTERCEPT DOCKET"
-
-            target_sector = "Strait of Hormuz Corridor"
-            if isinstance(raw_scout_assessment, dict) and raw_scout_assessment.get("target_route_id"):
-                target_sector = f"Route {str(raw_scout_assessment.get('target_route_id'))[:8]}"
+            action_label = "Rerouted" if logistics_data["reroute_triggered"] else "Sheltered"
+            raw_title = scout_data.get("primary_threat") or scenario
+            
+            # Clean up double titling
+            scenario_title = raw_title[:60].strip()
+            if scenario_title.endswith("INTERCEPT DOCKET"):
+                scenario_title = scenario_title.replace("INTERCEPT DOCKET", "").strip()
 
             history_payload = {
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "scenario_title": scenario_title,
-                "sector": target_sector,
-                "risk_score": scout_data["risk_score"],
-                "premium_surge": premium_surge,
+                "sector": "Strait of Hormuz Corridor",
+                "risk_score": int(scout_data["risk_score"]),
+                "premium_surge": int(premium_surge),
                 "action_taken": action_label,
                 "scout_analysis": scout_data["assessment"],
                 "logistics_plan": logistics_data["strategic_recommendation"]
             }
+
+            headers = {
+                **API_HEADERS,
+                "Prefer": "return=representation"
+            }
             
             # Post directly to Supabase simulation_logs table
-            requests.post(
+            db_response = requests.post(
                 f"{SUPABASE_URL}/rest/v1/simulation_logs", 
-                headers=API_HEADERS, 
+                headers=headers, 
                 json=history_payload
             )
-            print("💾 Simulation execution logged to Supabase history registry.")
+
+            print(f"💾 Writeback Status: {db_response.status_code}")
+            if db_response.status_code in [200, 201]:
+                print("✅ Simulation execution successfully saved to `simulation_logs`.")
+            else:
+                print(f"❌ Writeback Failed! Error Payload: {db_response.text}")
+                
         except Exception as log_err:
-            print(f"⚠️ History logging non-critical warning: {log_err}")
+            print(f"⚠️ History logging exception occurred: {log_err}")
 
         # 4. Return formatted combined operational intelligence back to client
         return {
@@ -284,7 +283,6 @@ def simulate_crisis_event(payload: CrisisRequest):
     except Exception as e:
         print(f"❌ Critical Failure inside simulation endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Simulation Pipeline Error: {str(e)}")
-
 
 # does not work without internet. database connectivity works on internet. 
 # everything is working fine in the backend.
