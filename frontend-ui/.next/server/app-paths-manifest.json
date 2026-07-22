@@ -1,9 +1,7 @@
 {
+  "/simulation/page": "app/simulation/page.js",
   "/ports/page": "app/ports/page.js",
   "/risk-intelligence/page": "app/risk-intelligence/page.js",
-  "/page": "app/page.js",
-  "/simulation/page": "app/simulation/page.js",
-  "/routes/page": "app/routes/page.js",
   "/settings/page": "app/settings/page.js",
   "/reports/page": "app/reports/page.js"
 }
