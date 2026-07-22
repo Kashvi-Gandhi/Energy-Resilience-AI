@@ -11,50 +11,45 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/ports/page": [
+    "/simulation/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/ports/page.js"
+      "static/chunks/app/simulation/page.js"
     ],
     "/routes/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/routes/page.js"
     ],
-    "/live-map/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/live-map/page.js"
-    ],
-    "/threats/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/threats/page.js"
-    ],
     "/vessels/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/vessels/page.js"
     ],
-    "/risk-intelligence/page": [
+    "/ports/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/risk-intelligence/page.js"
+      "static/chunks/app/ports/page.js"
     ],
     "/reports/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/reports/page.js"
     ],
-    "/simulation/page": [
+    "/live-map/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/simulation/page.js"
+      "static/chunks/app/live-map/page.js"
     ],
-    "/settings/page": [
+    "/risk-intelligence/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/settings/page.js"
+      "static/chunks/app/risk-intelligence/page.js"
+    ],
+    "/threats/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/threats/page.js"
     ]
   }
 }

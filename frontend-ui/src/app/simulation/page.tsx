@@ -633,7 +633,7 @@ export default function SimulationPage() {
           </div>
 
           {/* RIGHT COLUMN: SIMULATION MATRIX LOG CARD */}
-          <div className="border border-slate-200 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden min-h-[400px] lg:min-h-0">
+          <div className="border border-slate-200 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden lg:h-[calc(100vh-10rem)] min-h-[400px]">
             {/* Card Header */}
             <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2 shrink-0">
               <Activity className="h-4 w-4 text-slate-500" />
@@ -642,103 +642,183 @@ export default function SimulationPage() {
               </span>
             </div>
 
-            {/* Scrollable content */}
-            <div className="flex-1 p-4 overflow-y-auto font-mono text-xs space-y-4">
-            {loading ? (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2 p-6 text-center">
-                <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mb-1" />
-                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-700">
-                  Executing Agent Framework...
-                </span>
-                <p className="text-[10px] text-slate-400 max-w-[220px] leading-tight font-sans">
-                  Querying vector news weights and running rerouting algorithms.
-                </p>
-              </div>
-            ) : simResult ? (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                {/* SCOUT AGENT RECON BLOCK */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">
-                      1. Scout Assessment
-                    </span>
-                    <span className="text-[10px] px-1.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded font-black">
-                      {/* Dynamically fallback to 0 or N/A instead of a fake '85' risk score */}
-                      SCORE:{" "}
-                      {simResult.scout_assessment?.risk_score !== undefined
-                        ? `${simResult.scout_assessment.risk_score}/100`
-                        : "PENDING"}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-slate-700 font-sans leading-relaxed">
-                    {typeof simResult.scout_assessment === "string"
-                      ? simResult.scout_assessment
-                      : simResult.scout_assessment?.assessment ||
-                        simResult.scout_assessment?.risk_analysis ||
-                        "No assessment breakdown text returned by the Scout Agent."}
-                  </div>
+            {/* Scrollable content — only this section scrolls */}
+            <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+              {loading ? (
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2 p-6 text-center">
+                  <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mb-1" />
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-slate-700">
+                    Executing Agent Framework...
+                  </span>
+                  <p className="text-[10px] text-slate-400 max-w-[220px] leading-tight font-sans">
+                    Querying vector news weights and running rerouting algorithms.
+                  </p>
                 </div>
+              ) : simResult ? (
+                <div className="space-y-4 animate-in fade-in duration-200">
 
-                {/* LOGISTICS AGENT MITIGATION RE-ROUTE BOX */}
-                <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-200 space-y-2">
-                  <div className="flex items-center justify-between border-b border-blue-100/50 pb-1.5">
-                    <span className="text-[10px] font-bold text-blue-700 uppercase">
-                      2. Logistics Plan
-                    </span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded font-black uppercase border ${
-                        simResult.logistics_mitigation?.reroute_triggered === true
-                          ? "bg-amber-50 text-amber-700 border-amber-200"
-                          : (simResult.scout_assessment?.risk_score ?? 0) >= 70 &&
-                              simResult.logistics_mitigation?.reroute_triggered === false
-                            ? "bg-rose-50 text-rose-700 border-rose-200"
-                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      }`}
-                    >
-                      {simResult.logistics_mitigation?.reroute_triggered === true
-                        ? "Reroute Enforced"
-                        : (simResult.scout_assessment?.risk_score ?? 0) >= 70 &&
-                            simResult.logistics_mitigation?.reroute_triggered === false
-                          ? "Shelter Enforced"
-                          : "Course Maintained"}
-                    </span>
-                  </div>
-                  <div className="prose prose-sm prose-slate max-w-none text-[11px] leading-relaxed font-sans">
-                    <ReactMarkdown>
-                      {simResult.logistics_mitigation?.strategic_recommendation ||
-                        "Current operational profiles remain within safe parameters. No deviations required."}
-                    </ReactMarkdown>
-                  </div>
-                </div>
+                  {/* SCOUT AGENT RECON BLOCK */}
+                  <div className="rounded-xl border border-slate-200 overflow-hidden">
+                    {/* Block header */}
+                    <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b border-slate-200">
+                      <span className="text-[10px] font-bold text-slate-500 font-mono uppercase tracking-wider">
+                        1. Scout Assessment
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded font-black font-mono">
+                        SCORE:{" "}
+                        {simResult.scout_assessment?.risk_score !== undefined
+                          ? `${simResult.scout_assessment.risk_score}/100`
+                          : "PENDING"}
+                      </span>
+                    </div>
 
-                {/* DYNAMIC SYSTEM RESPONSE CARD */}
-                {simResult.status === "success" && (
-                  <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 flex items-start gap-2.5 text-[11px] font-sans">
-                    <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
-                    <div>
-                      <p className="font-bold font-mono text-[10px] uppercase text-emerald-900">
-                        Pipeline Execution Complete
-                      </p>
-                      <p className="text-emerald-700 mt-0.5">
-                        The multi-agent simulation run completed successfully
-                        against target variables.
-                      </p>
+                    {/* Structured data rows */}
+                    <div className="divide-y divide-slate-100">
+                      {/* Raw assessment text — broken into paragraph chunks */}
+                      {(() => {
+                        const raw =
+                          typeof simResult.scout_assessment === "string"
+                            ? simResult.scout_assessment
+                            : simResult.scout_assessment?.assessment ||
+                              simResult.scout_assessment?.risk_analysis ||
+                              "";
+
+                        // Split on sentence-ending punctuation followed by a capital letter
+                        // to create logical paragraph chunks
+                        const sentences = raw
+                          .split(/(?<=[.!?])\s+(?=[A-Z])/)
+                          .filter(Boolean);
+
+                        // Group every ~2 sentences into a row
+                        const chunks: string[] = [];
+                        for (let i = 0; i < sentences.length; i += 2) {
+                          chunks.push(sentences.slice(i, i + 2).join(" "));
+                        }
+
+                        // Label prefixes to assign to each chunk
+                        const labels = [
+                          "Threat Breakdown",
+                          "Affected Corridors",
+                          "Escalation Probability",
+                          "Recommended Posture",
+                          "Additional Notes",
+                        ];
+
+                        return chunks.map((chunk, idx) => (
+                          <div key={idx} className="px-3 py-2.5 grid grid-cols-[110px_1fr] gap-2 items-start">
+                            <span className="text-[9px] font-black font-mono uppercase text-slate-400 tracking-wider pt-0.5 shrink-0">
+                              {labels[idx] ?? `Detail ${idx + 1}`}
+                            </span>
+                            <p className="text-[11px] text-slate-700 font-sans leading-relaxed">
+                              {chunk}
+                            </p>
+                          </div>
+                        ));
+                      })()}
+
+                      {/* Fallback if no text */}
+                      {!simResult.scout_assessment?.assessment &&
+                        !simResult.scout_assessment?.risk_analysis &&
+                        typeof simResult.scout_assessment !== "string" && (
+                          <div className="px-3 py-2.5 text-[11px] text-slate-400 font-sans italic">
+                            No assessment text returned by Scout Agent.
+                          </div>
+                        )}
                     </div>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center p-6">
-                <HelpCircle className="h-5 w-5 mb-1.5 text-slate-300" />
-                <span className="uppercase text-[10px] tracking-wider block font-bold text-slate-400">
-                  Laboratory Dormant
-                </span>
-                <p className="text-[10px] text-slate-400 max-w-[200px] mt-0.5 leading-tight font-sans">
-                  Select a threat card or type in the injection terminal field
-                  to launch multi-agent path analysis.
-                </p>
-              </div>
-            )}
+
+                  {/* LOGISTICS AGENT MITIGATION BLOCK */}
+                  <div className="rounded-xl border border-blue-200 overflow-hidden">
+                    {/* Block header */}
+                    <div className="flex items-center justify-between px-3 py-2 bg-blue-50/60 border-b border-blue-100">
+                      <span className="text-[10px] font-bold text-blue-700 font-mono uppercase tracking-wider">
+                        2. Logistics Plan
+                      </span>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded font-black font-mono uppercase border ${
+                          simResult.logistics_mitigation?.reroute_triggered === true
+                            ? "bg-amber-50 text-amber-700 border-amber-200"
+                            : (simResult.scout_assessment?.risk_score ?? 0) >= 70 &&
+                                simResult.logistics_mitigation?.reroute_triggered === false
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        }`}
+                      >
+                        {simResult.logistics_mitigation?.reroute_triggered === true
+                          ? "Reroute Enforced"
+                          : (simResult.scout_assessment?.risk_score ?? 0) >= 70 &&
+                              simResult.logistics_mitigation?.reroute_triggered === false
+                            ? "Shelter Enforced"
+                            : "Course Maintained"}
+                      </span>
+                    </div>
+
+                    {/* Structured recommendation rows */}
+                    <div className="divide-y divide-blue-50">
+                      {(() => {
+                        const rec =
+                          simResult.logistics_mitigation?.strategic_recommendation ||
+                          "Current operational profiles remain within safe parameters. No deviations required.";
+
+                        const sentences = rec
+                          .split(/(?<=[.!?])\s+(?=[A-Z*#])/)
+                          .filter((s: string) => s.trim().length > 0);
+
+                        const chunks: string[] = [];
+                        for (let i = 0; i < sentences.length; i += 2) {
+                          chunks.push(sentences.slice(i, i + 2).join(" "));
+                        }
+
+                        const labels = [
+                          "Situation",
+                          "Immediate Action",
+                          "Alt Routes",
+                          "Timeline",
+                          "Risk Mitigation",
+                          "Follow-up",
+                        ];
+
+                        return chunks.map((chunk, idx) => (
+                          <div key={idx} className="px-3 py-2.5 grid grid-cols-[110px_1fr] gap-2 items-start">
+                            <span className="text-[9px] font-black font-mono uppercase text-blue-400 tracking-wider pt-0.5 shrink-0">
+                              {labels[idx] ?? `Step ${idx + 1}`}
+                            </span>
+                            <div className="text-[11px] text-slate-700 font-sans leading-relaxed prose prose-sm prose-slate max-w-none">
+                              <ReactMarkdown>{chunk}</ReactMarkdown>
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* PIPELINE COMPLETE STATUS */}
+                  {simResult.status === "success" && (
+                    <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 flex items-start gap-2.5 text-[11px] font-sans">
+                      <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
+                      <div>
+                        <p className="font-bold font-mono text-[10px] uppercase text-emerald-900">
+                          Pipeline Execution Complete
+                        </p>
+                        <p className="text-emerald-700 mt-0.5">
+                          Multi-agent simulation run completed successfully against target variables.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center p-6">
+                  <HelpCircle className="h-5 w-5 mb-1.5 text-slate-300" />
+                  <span className="uppercase text-[10px] tracking-wider block font-bold text-slate-400">
+                    Laboratory Dormant
+                  </span>
+                  <p className="text-[10px] text-slate-400 max-w-[200px] mt-0.5 leading-tight font-sans">
+                    Select a threat card or type in the injection terminal field
+                    to launch multi-agent path analysis.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Card Footer */}
