@@ -127,3 +127,12 @@ Here is a realistic, step-by-step roadmap written in simple English, complete wi
         Ensure all simulation logs store an immutable hash (SHA-256) of the input threat and generated response to meet ISO/IEC 27001 and government data compliance standards.
 
         Summary Stack Comparison
+
+
+
+
+try to make this for the main project.
+
+
+personal:
+    i want to make this for my final year project
