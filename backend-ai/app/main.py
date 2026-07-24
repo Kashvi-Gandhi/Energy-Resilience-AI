@@ -288,3 +288,5 @@ def simulate_crisis_event(payload: CrisisRequest):
 # does not work without internet. database connectivity works on internet. 
 # everything is working fine in the backend.
 # reporta page pending
+
+# add live data (API) for news and reports.
