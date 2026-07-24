@@ -32,9 +32,8 @@ Here is a breakdown of what the government currently uses and where the bottlene
 
 
 
-## Add News page 
+## Add News page in next version
 Adding a Threat Feed page bridges the gap between raw data ingestion and high-level decision-making. It highlights the power of your Gemini RAG pipeline and makes your application feel like a true enterprise-grade intelligence platform!
-
 
 
 
