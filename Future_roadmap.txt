@@ -1,0 +1,86 @@
+Here is a realistic, step-by-step roadmap written in simple English, complete with industry-standard references.
+
+1. Security & Infrastructure Hardening
+    Environment & API Key Management:
+
+        Current: .env files stored locally.
+
+        Production: Move all secrets (Gemini keys, Supabase credentials) to a managed secret store like AWS Secrets Manager or HashiCorp Vault. Never expose database credentials in raw environment variables on host servers.
+
+    Role-Based Access Control (RBAC):
+
+        Implement strict user roles (e.g., Viewer, Analyst, Defense Admin) using Supabase Auth / JWT tokens. Ensure standard users cannot trigger high-cost simulations or access classified logs.
+
+    Rate Limiting & DDoS Protection:
+
+        Put Cloudflare Enterprise or AWS CloudFront in front of your FastAPI backend.
+
+        Use FastAPI middleware like slowapi to restrict API rate limits, preventing malicious users from spamming vector searches and exhausting your Gemini API quotas.
+
+2. Production Database & Data Pipelines
+    PostgreSQL Performance & Indexing:
+
+        Current: Basic pgvector extension.
+
+        Production: Add HNSW (Hierarchical Navigable Small World) vector indexes in PostgreSQL via Supabase. Standard vector searches slow down as your database grows; HNSW indexes ensure sub-second search speeds even across millions of threat records (Reference: pgvector documentation on HNSW indexing).
+
+    Database Backups & High Availability (HA):
+
+        Enable multi-region read replicas and automated Point-in-Time Recovery (PITR) on Supabase/PostgreSQL so the platform never experiences downtime during regional server failures.
+
+    Live Ingestion Pipelines (Replacing Mock Data):
+
+        Build automated background workers (using Celery or Temporal.io) to pull live data from real maritime and geopolitical APIs:
+
+        AIS Vessel Tracking: Integration with Spire Maritime or MarineTraffic API.
+
+        Threat Feeds: Live RSS/News scrapers or GDELT Project (Global Data on Events, Location, and Tone).
+
+3. Production-Grade AI & Agent Guardrails
+    LLM Fallbacks & Reliability:
+
+        Current: Direct API calls to Gemini.
+
+        Production: Use an LLM gateway (like LiteLLM or Portkey). If Gemini experiences high latency or outage, the gateway automatically falls back to an alternative model without breaking the application.
+
+    Deterministic Output Validation:
+
+        AI models sometimes hallucinate non-existent JSON formats. Wrap all agent outputs with Pydantic validation models or Guardrails AI to guarantee that Agent 1 and Agent 2 always return valid JSON before passing data to the frontend.
+
+    Asynchronous Execution:
+
+        RAG and agent planning should run asynchronously using FastAPI Background Tasks or Redis + Celery. Long AI generations will cause HTTP timeouts if handled synchronously.
+
+4. DevOps, CI/CD & Deployment Strategy
+    Containerization:
+
+        Package both the Next.js frontend and FastAPI backend into isolated Docker containers. Create a docker-compose.yml for local testing and deployment.
+
+    Automated CI/CD Pipeline:
+
+        Set up GitHub Actions so that every code push automatically runs unit tests (PyTest for backend, Jest/Playwright for frontend) and deploys to staging environments.
+
+    Hosting Architecture:
+
+        Frontend: Deploy Next.js to Vercel Enterprise or AWS Amplify.
+
+        Backend: Deploy Dockerized FastAPI to AWS ECS (Elastic Container Service) or Google Cloud Run with auto-scaling enabled.
+
+        Database: Production tier on Supabase Enterprise or AWS RDS for PostgreSQL.
+
+5. Monitoring, Logging & Governance
+    Observability & APM:
+
+        Install Sentry for real-time frontend and backend crash reporting.
+
+        Implement Datadog or Prometheus + Grafana to monitor server CPU, memory, HTTP response times, and active database connections.
+
+    LLM Tracing & Cost Tracking:
+
+        Integrate Langfuse or Arize Phoenix to monitor LLM token costs, prompt latency, and agent step execution trees.
+
+    Audit & Compliance Ledger:
+
+        Ensure all simulation logs store an immutable hash (SHA-256) of the input threat and generated response to meet ISO/IEC 27001 and government data compliance standards.
+
+        Summary Stack Comparison
