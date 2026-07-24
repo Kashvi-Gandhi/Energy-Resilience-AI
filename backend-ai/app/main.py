@@ -289,4 +289,4 @@ def simulate_crisis_event(payload: CrisisRequest):
 # everything is working fine in the backend.
 # reporta page pending
 
-# add live data (API) for news and reports.
+# add live data (API) for news and reports. we need to get an API key for fetching live shipment data from the government or somewhere trustworthy.
