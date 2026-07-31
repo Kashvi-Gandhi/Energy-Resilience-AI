@@ -10,3 +10,9 @@ The Research Gap: Studies on recent maritime crises (such as the Red Sea / Bab-e
 
 Your Solution: ResilientIndia AI collapses this response window from 47 days to under 3 seconds. The Logistics Architect Agent instantly calculates Cape of Good Hope bypasses, time delays (+10 days), and cost impacts the moment a threat score crosses safe thresholds.
 
+Paper 3, 4:
+
+The Research Gap: Research in Systems Research and Behavioral Science (MDPI) shows that geopolitical threats undermine maritime resilience through three distinct channels: physical infrastructure disruption, freight rate volatility, and customs bottlenecks. Existing tools fail to unify geopolitical sentiment analysis with physical route analytics.
+
+Your Solution: Your project uses Agent 1 (Geopolitical Scout) to normalize qualitative breaking news into a structured 0–100 threat score, while Agent 2 (Adaptive Logistics Architect) links that score directly to physical maritime rerouting and Strategic Petroleum Reserve (SPR) drawdown strategies.
+
