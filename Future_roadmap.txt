@@ -135,4 +135,4 @@ try to make this for the main project.
 
 
 personal:
-    i want to make this for my final year project
+    i want to make this for my final year project, and upload a research paper on this. 
