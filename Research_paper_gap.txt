@@ -17,3 +17,4 @@ The Research Gap: Research in Systems Research and Behavioral Science (MDPI) sho
 Your Solution: Your project uses Agent 1 (Geopolitical Scout) to normalize qualitative breaking news into a structured 0–100 threat score, while Agent 2 (Adaptive Logistics Architect) links that score directly to physical maritime rerouting and Strategic Petroleum Reserve (SPR) drawdown strategies.
 
 
+4/8/23 - told prajakta to show mam the research papers
