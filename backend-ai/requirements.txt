@@ -5,3 +5,10 @@ google-genai
 python-dotenv
 pydantic
 requests
+feedparser>=6.0.10
+google-genai>=0.1.1
+supabase>=2.0.0
+python-dotenv>=1.0.0
+websockets>=12.0
+asyncio
+
