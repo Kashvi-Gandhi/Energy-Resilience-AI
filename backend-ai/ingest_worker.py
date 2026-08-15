@@ -2,7 +2,7 @@ import os
 import time
 import logging
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 import feedparser
 from dotenv import load_dotenv
 from google import genai
@@ -52,12 +52,14 @@ def contains_threat_keyword(text: str) -> bool:
     return any(keyword in text_lower for keyword in RISK_KEYWORDS)
 
 def generate_embedding(text: str) -> list[float]:
-    """Generates vector embedding using Gemini API."""
+    """Generates 768-dimensional vector embedding using Gemini API."""
     response = ai_client.models.embed_content(
         model="gemini-embedding-001",
-        contents=text
+        contents=text,
+        config={
+            "output_dimensionality": 768
+        }
     )
-    # google-genai returns list of embeddings inside result
     return response.embeddings[0].values
 
 def store_threat_event(title: str, summary: str, source_url: str, embedding: list[float]):
@@ -66,7 +68,7 @@ def store_threat_event(title: str, summary: str, source_url: str, embedding: lis
         "summary": summary,
         "source_url": source_url,
         "embedding": embedding,
-        "ingested_at": datetime.utcnow().isoformat(),
+        "ingested_at": datetime.now(timezone.utc).isoformat(),
         "status": "UNPROCESSED"
     }
     supabase.table("threat_signals").upsert(data, on_conflict="source_url").execute()
