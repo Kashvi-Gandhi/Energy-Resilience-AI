@@ -1,4 +1,303 @@
-import os
+# import os
+# import os
+# import requests
+# from datetime import datetime, timezone
+# from fastapi import FastAPI, HTTPException
+# from fastapi.middleware.cors import CORSMiddleware
+# from pydantic import BaseModel, Field
+# from dotenv import load_dotenv
+
+# # Absolute/Relative imports depending on execution context
+# from app.database import query_vector_news
+# from app.database import supabase
+# from app.database import API_HEADERS, SUPABASE_URL  # needed for simulation_logs writeback
+# from app.agents import run_scout_agent, run_logistics_agent
+
+# load_dotenv()
+
+# app = FastAPI(
+#     title="Energy Resilience AI Backend Engine",
+#     description="FastAPI engine handling geopolitical RAG analytics and tanker rerouting simulations.",
+#     version="1.0.0"
+# )
+
+# # Enable Cross-Origin Resource Sharing (CORS) for Next.js frontend integration
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # For hackathon environment development, allow all origins
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# # Pydantic Schema for structured POST request validation
+# class CrisisRequest(BaseModel):
+#     scenario: str = Field(
+#         ..., 
+#         description="The real-time crisis scenario text or intelligence report to process.",
+#     )
+#     # 1. Add an explicit field for premium surge so we don't rely only on string parsing
+#     premium_surge: int = Field(
+#         default=25,
+#         description="Global operational insurance premium surge scale percentage.",
+#         example=89
+#     )
+
+# @app.get("/")
+# def read_root():
+#     return {
+#         "status": "online",
+#         "system": "Energy Resilience AI Core",
+#         "engine": "Google Gemini Pro/Flash Integration Active"
+#     }
+
+# @app.get("/api/health")
+# def health_check():
+#     return {"status": "healthy", "database_connected": True}
+
+
+# # --- 🛠️ UPDATED SUPABASE DATA EXTRACTION ENDPOINTS ---
+
+# @app.get("/api/vessels")
+# def get_live_fleet():
+#     """
+#     Fetches real-time fleet positions from Supabase, joining 
+#     associated route risks, origin/destination ports relational profiles.
+#     """
+#     try:
+#         # Executes table joins across your primary and foreign key constraints
+#         response = supabase.table("vessels").select(
+#             "id, name, current_lat, current_lon, cargo_type, capacity_barrels, status, updated_at, "
+#             "supply_routes(route_name, risk_score), "
+#             "origin:ports!vessels_origin_port_id_fkey(name), "
+#             "destination:ports!vessels_destination_port_id_fkey(name)"
+#         ).execute()
+#         return response.data
+#     except Exception as e:
+#         print(f"❌ Supabase vessels read failure: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Database operational failure: {str(e)}")
+
+
+# @app.get("/api/threats")
+# def get_active_threat_briefs():
+#     """
+#     Fetches real-time hot intelligence incidents from the newly created active_threats ledger.
+#     """
+#     try:
+#         # Added 'description' to the select string to feed the frontend detail window
+#         response = supabase.table("active_threats").select(
+#             "id, event_type, severity, region, latitude, longitude, status, description, created_at, "
+#             "supply_routes(route_name, risk_score)"
+#         ).order("created_at", desc=True).execute()
+#         return response.data
+#     except Exception as e:
+#         print(f"❌ Supabase active_threats read failure: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Database operational failure: {str(e)}")
+    
+
+# @app.get("/api/routes")
+# def get_supply_corridors():
+#     """
+#     Fetches strategic marine transit corridors directly out of Supabase
+#     """
+#     try:
+#         response = supabase.table("supply_routes").select("id, route_name, risk_score, waypoints").execute()
+#         return response.data
+#     except Exception as e:
+#         print(f"❌ Supabase supply_routes fetch failure: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Database route error: {str(e)}")
+
+
+# @app.get("/api/ports")
+# def get_operational_ports():
+#     """
+#     Fetches terminal transshipment port capacities directly to clear the Unregistered Hub errors
+#     """
+#     try:
+#         response = supabase.table("ports").select(
+#             "id, name, country, throughput_capacity_mtpa, crude_stream_compatibility, latitude, longitude"
+#         ).order("name", desc=False).execute()
+#         return response.data
+#     except Exception as e:
+#         print(f"❌ Supabase ports fetch failure: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Database port node error: {str(e)}")
+
+
+# @app.get("/api/reports")
+# def get_intelligence_reports():
+#     """
+#     Aggregates active geopolitical threats from the database and maps them
+#     on the fly into cryptographically structured report dossiers.
+#     """
+#     try:
+#         # Querying your existing active_threats table, joining supply_routes metadata
+#         response = supabase.table("active_threats").select(
+#             "id, event_type, severity, region, description, created_at, "
+#             "supply_routes(route_name)"
+#         ).order("created_at", desc=True).execute()
+        
+#         threats = response.data or []
+#         reports_dossier = []
+        
+#         for index, threat in enumerate(threats):
+#             # 1. Dynamically structure an executive-level report title
+#             event = threat.get("event_type", "Security Vector Incident").upper()
+#             route_info = threat.get("supply_routes")
+#             route_name = route_info.get("route_name") if route_info else None
+#             location_anchor = route_name or threat.get("region", "Global Operations Axis")
+            
+#             title = f"{event} INTERCEPT DOCKET ({location_anchor.upper()})"
+            
+#             # 2. Translate database threat severity into standard compliance classification tiers
+#             severity_tier = str(threat.get("severity", "")).upper()
+#             if "CRITICAL" in severity_tier or "HIGH" in severity_tier:
+#                 classification = "SECRET"
+#             elif "MEDIUM" in severity_tier:
+#                 classification = "RESTRICTED"
+#             else:
+#                 classification = "CONFIDENTIAL"
+                
+#             # 3. Formulate file weights programmatically based on string size
+#             desc_len = len(threat.get("description") or "")
+#             mock_size = f"{round((desc_len % 15) + 2.4, 1)} MB"
+            
+#             reports_dossier.append({
+#                 "id": threat.get("id", str(index)),
+#                 "title": title,
+#                 "created_at": threat.get("created_at"),
+#                 "origin_branch": f"Sector: {threat.get('region', 'Tactical HQ')}",
+#                 "file_size": mock_size,
+#                 "security_classification": classification,
+#                 "description": threat.get("description", "No historical analyst field logs written.")
+#             })
+            
+#         return reports_dossier
+
+#     except Exception as e:
+#         print(f"❌ Supabase aggregation mapping failure: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Database aggregation exception: {str(e)}")
+
+# # --- ------------------------------------------ ---
+
+# # Core Day 9 API Endpoint converted to POST to handle complex text data safely
+# @app.post("/api/simulate-crisis")
+# def simulate_crisis_event(payload: CrisisRequest):
+#     scenario = payload.scenario
+#     premium_surge = payload.premium_surge
+    
+#     print(f"\n⚡ Initiating Full Agent Simulation for: '{scenario}'")
+#     print(f"💰 Global Premium Surge Scale: +{premium_surge}%")
+    
+#     try:
+#         # 1. Gather context from our vector data store
+#         intel_context = query_vector_news(query_text=scenario, match_threshold=0.3, match_count=1)
+        
+#         # 2. Execute Agent 1 (Assessment)
+#         raw_scout_assessment = run_scout_agent(intel_context, user_scenario=scenario)
+        
+#         # 3. Execute Agent 2 (Mitigation Planning)
+#         raw_logistics_plan = run_logistics_agent(raw_scout_assessment, premium_surge=premium_surge)
+        
+#         # --- 🛠️ ROBUST PARSING ENGINE LOGIC ---
+#         scout_data = {}
+#         if isinstance(raw_scout_assessment, dict):
+#             scout_data["risk_score"] = raw_scout_assessment.get("risk_score", 75)
+#             scout_data["assessment"] = (
+#                 raw_scout_assessment.get("assessment") or 
+#                 raw_scout_assessment.get("risk_analysis") or 
+#                 str(raw_scout_assessment)
+#             )
+#             scout_data["primary_threat"] = raw_scout_assessment.get("primary_threat", scenario)
+#         else:
+#             scout_data["risk_score"] = 80  
+#             scout_data["assessment"] = str(raw_scout_assessment)
+#             scout_data["primary_threat"] = scenario
+
+#         logistics_data = {}
+#         if isinstance(raw_logistics_plan, dict):
+#             trigger_status = raw_logistics_plan.get("reroute_triggered", True)
+#             logistics_data["reroute_triggered"] = bool(trigger_status)
+#             logistics_data["strategic_recommendation"] = (
+#                 raw_logistics_plan.get("strategic_recommendation") or
+#                 raw_logistics_plan.get("recommendation") or 
+#                 raw_logistics_plan.get("mitigation_plan") or 
+#                 str(raw_logistics_plan)
+#             )
+#         else:
+#             logistics_data["reroute_triggered"] = True
+#             logistics_data["strategic_recommendation"] = str(raw_logistics_plan)
+                
+#         print(f"📊 Processed Scout Risk Score: {scout_data['risk_score']}/100")
+#         print(f"⚓ Processed Logistics Action Triggered: {logistics_data['reroute_triggered']}")
+
+#         # --- 💾 SUPABASE LOGS WRITEBACK WITH ADVANCED DIAGNOSTICS ---
+#         try:
+#             action_label = "Rerouted" if logistics_data["reroute_triggered"] else "Sheltered"
+#             raw_title = scout_data.get("primary_threat") or scenario
+            
+#             # Clean up double titling
+#             scenario_title = raw_title[:60].strip()
+#             if scenario_title.endswith("INTERCEPT DOCKET"):
+#                 scenario_title = scenario_title.replace("INTERCEPT DOCKET", "").strip()
+
+#             history_payload = {
+#                 "created_at": datetime.now(timezone.utc).isoformat(),
+#                 "scenario_title": scenario_title,
+#                 "sector": "Strait of Hormuz Corridor",
+#                 "risk_score": int(scout_data["risk_score"]),
+#                 "premium_surge": int(premium_surge),
+#                 "action_taken": action_label,
+#                 "scout_analysis": scout_data["assessment"],
+#                 "logistics_plan": logistics_data["strategic_recommendation"]
+#             }
+
+#             headers = {
+#                 **API_HEADERS,
+#                 "Prefer": "return=representation"
+#             }
+            
+#             # Post directly to Supabase simulation_logs table
+#             db_response = requests.post(
+#                 f"{SUPABASE_URL}/rest/v1/simulation_logs", 
+#                 headers=headers, 
+#                 json=history_payload
+#             )
+
+#             print(f"💾 Writeback Status: {db_response.status_code}")
+#             if db_response.status_code in [200, 201]:
+#                 print("✅ Simulation execution successfully saved to `simulation_logs`.")
+#             else:
+#                 print(f"❌ Writeback Failed! Error Payload: {db_response.text}")
+                
+#         except Exception as log_err:
+#             print(f"⚠️ History logging exception occurred: {log_err}")
+
+#         # 4. Return formatted combined operational intelligence back to client
+#         return {
+#             "status": "success",
+#             "input_scenario": scenario,
+#             "premium_surge": premium_surge,
+#             "scout_assessment": scout_data,
+#             "logistics_mitigation": logistics_data
+#         }
+        
+#     except Exception as e:
+#         print(f"❌ Critical Failure inside simulation endpoint: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Simulation Pipeline Error: {str(e)}")
+
+# # does not work without internet. database connectivity works on internet. 
+# # everything is working fine in the backend.
+# # report page pending
+
+# # add live data (API) for news and reports. we need to get an API key for fetching live shipment data from the government or somewhere trustworthy.
+
+
+
+
+
+
+
+
 import os
 import requests
 from datetime import datetime, timezone
@@ -10,7 +309,7 @@ from dotenv import load_dotenv
 # Absolute/Relative imports depending on execution context
 from app.database import query_vector_news
 from app.database import supabase
-from app.database import API_HEADERS, SUPABASE_URL  # needed for simulation_logs writeback
+from app.database import API_HEADERS, SUPABASE_URL  # kept for standard HTTP tasks if needed
 from app.agents import run_scout_agent, run_logistics_agent
 
 load_dotenv()
@@ -36,7 +335,6 @@ class CrisisRequest(BaseModel):
         ..., 
         description="The real-time crisis scenario text or intelligence report to process.",
     )
-    # 1. Add an explicit field for premium surge so we don't rely only on string parsing
     premium_surge: int = Field(
         default=25,
         description="Global operational insurance premium surge scale percentage.",
@@ -56,7 +354,7 @@ def health_check():
     return {"status": "healthy", "database_connected": True}
 
 
-# --- 🛠️ UPDATED SUPABASE DATA EXTRACTION ENDPOINTS ---
+# --- 🛠️ SUPABASE DATA EXTRACTION ENDPOINTS ---
 
 @app.get("/api/vessels")
 def get_live_fleet():
@@ -65,7 +363,6 @@ def get_live_fleet():
     associated route risks, origin/destination ports relational profiles.
     """
     try:
-        # Executes table joins across your primary and foreign key constraints
         response = supabase.table("vessels").select(
             "id, name, current_lat, current_lon, cargo_type, capacity_barrels, status, updated_at, "
             "supply_routes(route_name, risk_score), "
@@ -81,10 +378,9 @@ def get_live_fleet():
 @app.get("/api/threats")
 def get_active_threat_briefs():
     """
-    Fetches real-time hot intelligence incidents from the newly created active_threats ledger.
+    Fetches real-time hot intelligence incidents from active_threats ledger.
     """
     try:
-        # Added 'description' to the select string to feed the frontend detail window
         response = supabase.table("active_threats").select(
             "id, event_type, severity, region, latitude, longitude, status, description, created_at, "
             "supply_routes(route_name, risk_score)"
@@ -111,7 +407,7 @@ def get_supply_corridors():
 @app.get("/api/ports")
 def get_operational_ports():
     """
-    Fetches terminal transshipment port capacities directly to clear the Unregistered Hub errors
+    Fetches terminal transshipment port capacities directly
     """
     try:
         response = supabase.table("ports").select(
@@ -130,7 +426,6 @@ def get_intelligence_reports():
     on the fly into cryptographically structured report dossiers.
     """
     try:
-        # Querying your existing active_threats table, joining supply_routes metadata
         response = supabase.table("active_threats").select(
             "id, event_type, severity, region, description, created_at, "
             "supply_routes(route_name)"
@@ -140,7 +435,6 @@ def get_intelligence_reports():
         reports_dossier = []
         
         for index, threat in enumerate(threats):
-            # 1. Dynamically structure an executive-level report title
             event = threat.get("event_type", "Security Vector Incident").upper()
             route_info = threat.get("supply_routes")
             route_name = route_info.get("route_name") if route_info else None
@@ -148,7 +442,6 @@ def get_intelligence_reports():
             
             title = f"{event} INTERCEPT DOCKET ({location_anchor.upper()})"
             
-            # 2. Translate database threat severity into standard compliance classification tiers
             severity_tier = str(threat.get("severity", "")).upper()
             if "CRITICAL" in severity_tier or "HIGH" in severity_tier:
                 classification = "SECRET"
@@ -157,7 +450,6 @@ def get_intelligence_reports():
             else:
                 classification = "CONFIDENTIAL"
                 
-            # 3. Formulate file weights programmatically based on string size
             desc_len = len(threat.get("description") or "")
             mock_size = f"{round((desc_len % 15) + 2.4, 1)} MB"
             
@@ -177,9 +469,28 @@ def get_intelligence_reports():
         print(f"❌ Supabase aggregation mapping failure: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database aggregation exception: {str(e)}")
 
-# --- ------------------------------------------ ---
 
-# Core Day 9 API Endpoint converted to POST to handle complex text data safely
+# --- 📜 NEW: SIMULATION HISTORY ENDPOINT ---
+
+@app.get("/api/history")
+def get_simulation_history(limit: int = 10):
+    """
+    Retrieves recent simulation executions from the simulation_runs table.
+    """
+    try:
+        res = supabase.table("simulation_runs") \
+            .select("*") \
+            .order("created_at", desc=True) \
+            .limit(limit) \
+            .execute()
+        return {"success": True, "history": res.data}
+    except Exception as e:
+        print(f"❌ Simulation history fetch error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch simulation history: {str(e)}")
+
+
+# --- ⚡ CORE SIMULATION ENDPOINT ---
+
 @app.post("/api/simulate-crisis")
 def simulate_crisis_event(payload: CrisisRequest):
     scenario = payload.scenario
@@ -189,7 +500,7 @@ def simulate_crisis_event(payload: CrisisRequest):
     print(f"💰 Global Premium Surge Scale: +{premium_surge}%")
     
     try:
-        # 1. Gather context from our vector data store
+        # 1. Gather context from vector data store
         intel_context = query_vector_news(query_text=scenario, match_threshold=0.3, match_count=1)
         
         # 2. Execute Agent 1 (Assessment)
@@ -202,73 +513,89 @@ def simulate_crisis_event(payload: CrisisRequest):
         scout_data = {}
         if isinstance(raw_scout_assessment, dict):
             scout_data["risk_score"] = raw_scout_assessment.get("risk_score", 75)
+            scout_data["confidence_level"] = raw_scout_assessment.get("confidence_level", "HIGH")
+            scout_data["affected_corridors"] = raw_scout_assessment.get("affected_corridors", ["Strait of Hormuz"])
             scout_data["assessment"] = (
                 raw_scout_assessment.get("assessment") or 
+                raw_scout_assessment.get("threat_summary") or
                 raw_scout_assessment.get("risk_analysis") or 
                 str(raw_scout_assessment)
             )
             scout_data["primary_threat"] = raw_scout_assessment.get("primary_threat", scenario)
         else:
             scout_data["risk_score"] = 80  
+            scout_data["confidence_level"] = "HIGH"
+            scout_data["affected_corridors"] = ["Strait of Hormuz"]
             scout_data["assessment"] = str(raw_scout_assessment)
             scout_data["primary_threat"] = scenario
 
         logistics_data = {}
         if isinstance(raw_logistics_plan, dict):
-            trigger_status = raw_logistics_plan.get("reroute_triggered", True)
+            trigger_status = raw_logistics_plan.get("reroute_triggered") or raw_logistics_plan.get("action_required", True)
             logistics_data["reroute_triggered"] = bool(trigger_status)
+            logistics_data["primary_bypass_route"] = raw_logistics_plan.get("primary_bypass_route", "Cape of Good Hope Reroute")
+            logistics_data["estimated_delay_days"] = raw_logistics_plan.get("estimated_delay_days", 12)
+            logistics_data["spr_drawdown_mbpd"] = raw_logistics_plan.get("spr_drawdown_mbpd", 1.5)
             logistics_data["strategic_recommendation"] = (
                 raw_logistics_plan.get("strategic_recommendation") or
+                raw_logistics_plan.get("mitigation_strategy") or 
                 raw_logistics_plan.get("recommendation") or 
-                raw_logistics_plan.get("mitigation_plan") or 
                 str(raw_logistics_plan)
             )
         else:
             logistics_data["reroute_triggered"] = True
+            logistics_data["primary_bypass_route"] = "Cape of Good Hope Reroute"
+            logistics_data["estimated_delay_days"] = 12
+            logistics_data["spr_drawdown_mbpd"] = 1.5
             logistics_data["strategic_recommendation"] = str(raw_logistics_plan)
                 
         print(f"📊 Processed Scout Risk Score: {scout_data['risk_score']}/100")
         print(f"⚓ Processed Logistics Action Triggered: {logistics_data['reroute_triggered']}")
 
-        # --- 💾 SUPABASE LOGS WRITEBACK WITH ADVANCED DIAGNOSTICS ---
+        # --- 💾 WRITEBACK TO SIMULATION_RUNS TABLE ---
         try:
-            action_label = "Rerouted" if logistics_data["reroute_triggered"] else "Sheltered"
             raw_title = scout_data.get("primary_threat") or scenario
-            
-            # Clean up double titling
             scenario_title = raw_title[:60].strip()
             if scenario_title.endswith("INTERCEPT DOCKET"):
                 scenario_title = scenario_title.replace("INTERCEPT DOCKET", "").strip()
 
+            dossier_content = f"""# EXECUTIVE INTELLIGENCE DOSSIER
+**Generated:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
+**Scenario:** {scenario}
+
+## 1. Scout Assessment
+- **Risk Score:** {scout_data['risk_score']}/100
+- **Confidence Level:** {scout_data['confidence_level']}
+- **Summary:** {scout_data['assessment']}
+
+## 2. Adaptive Logistics Plan
+- **Action Required:** {logistics_data['reroute_triggered']}
+- **Primary Bypass Route:** {logistics_data['primary_bypass_route']}
+- **Estimated Delay:** +{logistics_data['estimated_delay_days']} Days
+- **SPR Drawdown:** {logistics_data['spr_drawdown_mbpd']} MBPD
+- **Strategy:** {logistics_data['strategic_recommendation']}
+"""
+
             history_payload = {
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "scenario_title": scenario_title,
-                "sector": "Strait of Hormuz Corridor",
                 "risk_score": int(scout_data["risk_score"]),
-                "premium_surge": int(premium_surge),
-                "action_taken": action_label,
+                "confidence_level": scout_data["confidence_level"],
+                "affected_corridors": scout_data["affected_corridors"],
+                "action_required": logistics_data["reroute_triggered"],
+                "primary_bypass_route": logistics_data["primary_bypass_route"],
+                "estimated_delay_days": int(logistics_data["estimated_delay_days"]),
+                "spr_drawdown_mbpd": float(logistics_data["spr_drawdown_mbpd"]),
                 "scout_analysis": scout_data["assessment"],
-                "logistics_plan": logistics_data["strategic_recommendation"]
+                "logistics_plan": logistics_data["strategic_recommendation"],
+                "dossier_markdown": dossier_content,
+                "status": "COMPLETED"
             }
 
-            headers = {
-                **API_HEADERS,
-                "Prefer": "return=representation"
-            }
-            
-            # Post directly to Supabase simulation_logs table
-            db_response = requests.post(
-                f"{SUPABASE_URL}/rest/v1/simulation_logs", 
-                headers=headers, 
-                json=history_payload
-            )
+            # Direct insert via Supabase client to target simulation_runs
+            db_res = supabase.table("simulation_runs").insert(history_payload).execute()
+            print(f"✅ Simulation execution successfully saved to `simulation_runs`. Record ID: {db_res.data[0].get('id') if db_res.data else 'OK'}")
 
-            print(f"💾 Writeback Status: {db_response.status_code}")
-            if db_response.status_code in [200, 201]:
-                print("✅ Simulation execution successfully saved to `simulation_logs`.")
-            else:
-                print(f"❌ Writeback Failed! Error Payload: {db_response.text}")
-                
         except Exception as log_err:
             print(f"⚠️ History logging exception occurred: {log_err}")
 
@@ -278,15 +605,10 @@ def simulate_crisis_event(payload: CrisisRequest):
             "input_scenario": scenario,
             "premium_surge": premium_surge,
             "scout_assessment": scout_data,
-            "logistics_mitigation": logistics_data
+            "logistics_mitigation": logistics_data,
+            "dossier_markdown": dossier_content
         }
         
     except Exception as e:
         print(f"❌ Critical Failure inside simulation endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Simulation Pipeline Error: {str(e)}")
-
-# does not work without internet. database connectivity works on internet. 
-# everything is working fine in the backend.
-# reporta page pending
-
-# add live data (API) for news and reports. we need to get an API key for fetching live shipment data from the government or somewhere trustworthy.
